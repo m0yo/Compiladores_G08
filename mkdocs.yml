@@ -23,4 +23,7 @@ theme:
     - content.code.copy
 
 nav:
-  - Home: index.md
+  - Ínicio: index.md
+  - Contribuição:
+    - Documentação: docs.md
+    - Guia de Commits: contributing.md
