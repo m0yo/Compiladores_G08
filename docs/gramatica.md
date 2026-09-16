@@ -29,11 +29,6 @@ LBRACE RBRACE AND OR NOT EQ NE LT GT LE GE`.
 <linha>          ::= <comando>
 ```
 
-> No `parser.y`, `program`/`line_list`/`line` existem como três
-> não-terminais separados, mas `line` hoje só se reduz a `stmt` — mantidos
-> aqui para espelhar a estrutura real da gramática caso o grupo queira
-> diferenciar "linha" de "comando" no futuro.
-
 ---
 
 ## 3. Tipos
