@@ -42,9 +42,6 @@ LBRACE RBRACE AND OR NOT EQ NE LT GT LE GE`.
 <tipo-especificador>  ::= T_INT | T_FLOAT | T_CHAR | T_BOOL
 ```
 
-Apenas quatro tipos simples, sem qualificadores de sinal (`signed`/
-`unsigned`) ou tamanho (`short`/`long`).
-
 ---
 
 ## 4. Comandos
@@ -69,9 +66,6 @@ Apenas quatro tipos simples, sem qualificadores de sinal (`signed`/
            | LBRACE <lista-comandos> RBRACE
 ```
 
-> **Dangling else:** O `else` liga
-> sempre ao `if` mais próximo ainda sem `else` — resolvido por *shift*,
-> igual à semântica do C.
 
 ### 4.1 Componentes do `for`
 
@@ -87,10 +81,6 @@ Apenas quatro tipos simples, sem qualificadores de sinal (`signed`/
              | ID ASSIGN <expressao>
 ```
 
-> Diferente de C "puro": `for_init` e `for_step` **não aceitam uma
-> expressão qualquer** — só declaração-com-inicialização ou uma atribuição
-> simples (`ID = expr`). 
-
 ### 4.2 Bloco
 
 ```bnf
@@ -102,19 +92,6 @@ Apenas quatro tipos simples, sem qualificadores de sinal (`signed`/
 
 ## 5. Expressões
 
-Gramática ambígua resolvida por declarações de precedência e
-associatividade:
-
-```
-Precedência (do menor para o maior):
-  OR
-  AND
-  EQ  NE
-  LT  GT  LE  GE
-  PLUS  MINUS
-  TIMES DIVIDE
-  NOT  UMINUS         (unário, associativo à direita)
-```
 
 ```bnf
 <expressao> ::= <expressao> PLUS <expressao>
