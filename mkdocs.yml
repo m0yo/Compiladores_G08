@@ -28,3 +28,4 @@ nav:
   - Contribuição:
     - Documentação: docs.md
     - Guia de Commits: contributing.md
+    - Guia de expressões regulares no Flex: expressoesRegularesFlex.md
