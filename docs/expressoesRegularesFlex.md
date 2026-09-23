@@ -37,6 +37,8 @@ Abrange as constantes numéricas inteiras e reais (floats), contemplando múltip
 * **Token associado:** `L_FLOAT`
 * **Descrição:** Sequência de dígitos antes do ponto, o caractere ponto (`\.`) e um ou mais dígitos após o ponto, permitindo múltiplos dígitos decimais na parte fracionária.
 
+> Pendência: o lexer.l ainda não implementa essa regra corretamente (usa `[0-9]+\.[0-9]`, aceitando apenas um dígito após o ponto). Ajustar o scanner para bater com as especificações
+
 ### Exemplos:
 | Lexema de Entrada | Token Esperado |
 | :--- | :--- |
@@ -71,7 +73,23 @@ Tratam os valores textuais e caracteres individuais, incluindo o suporte a sequ�
 
 ---
 
-## 4. Operadores e Delimitadores
+## 4. Tipos e palavras-chave
+
+Palavras reservadas da linguagem, reconhecidas literalmente pelo scanner.
+
+* **Tipos:** `int` (`T_INT`), `float` (`T_FLOAT`), `char` (`T_CHAR`), `long` (`T_LONG`), `double` (`T_DOUBLE`)
+* **Controle de fluxo:** `if` (`F_IF`), `else` (`F_ELSE`), `while` (`F_WHILE`), `for` (`F_FOR`), `do` (`F_DO`), `switch` (`F_SWITCH`), `case` (`F_CASE`), `break` (`F_BREAK`), `continue` (`F_CONTINUE`), `return` (`F_RETURN`)
+
+### Exemplos:
+| Lexema de Entrada | Token Esperado |
+| :--- | :--- |
+| `int` | `T_INT` |
+| `if` | `F_IF` |
+| `while` | `F_WHILE` |
+
+---
+
+## 5. Operadores e Delimitadores
 
 Os operadores e delimitadores cobrem os símbolos aritméticos, relacionais, lógicos, de atribuição e pontuações estruturais da linguagem C.
 
@@ -83,7 +101,7 @@ Os operadores e delimitadores cobrem os símbolos aritméticos, relacionais, ló
 
 ---
 
-## 5. Espaços em Branco, Quebras de Linha e Tratamento de Erros
+## 6. Espaços em Branco, Quebras de Linha e Tratamento de Erros
 
 Para evitar que o parser receba caracteres indesejados, os espaços e quebras de linha são consumidos silenciosamente pelo analisador léxico.
 
@@ -94,19 +112,23 @@ Para evitar que o parser receba caracteres indesejados, os espaços e quebras de
 
 ---
 
-## 6. Comentários (Linha Única e Bloco)
+## 7. Comentários (Linha Única e Bloco)
+
+> Pendente de implementação no `lexer.l` atual. O scanner hoje só tem um comentário para lembrete no código, a regra em si ainda não foi escrita.
 
 > **Nota de Implementação:** O suporte a comentários no analisador léxico deve ignorar trechos de documentação e anotações do programador sem retornar tokens para o parser.
 
-### 6.1. Comentário de Linha Única
+### 7.1. Comentário de Linha Única
 * **Expressão Regular:** `\/\/.*`
 * **Descrição:** Identifica comentários iniciados por `//` e é válido para toda a linha restante.
 * **Exemplo:** `// Inicialização do contador` (Ignorado pelo scanner).
 
-### 6.2. Comentário de Bloco
+### 7.2. Comentário de Bloco
 * **Expressão Regular:** `\/\*[^*]*\*+([^/*][^*]*\*+)*\/`
 * **Descrição:** Identifica blocos de comentários iniciados por `/*` e terminados por `*/`, permitindo múltiplas linhas.
-* **Exemplo:** ```c
+* **Exemplo:**
+  ```c
   /* Bloco de código 
     com múltiplas linhas 
   */
+  ```
