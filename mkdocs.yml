@@ -27,4 +27,6 @@ nav:
   - Contribuição:
     - Documentação: docs.md
     - Guia de Commits: contributing.md
-    - Guia da gramática formal: gramatica.md
+  - Scanner:
+    - Expressões Regulares: expressoesRegularesFlex.md
+    - Gramática: gramatica.md
