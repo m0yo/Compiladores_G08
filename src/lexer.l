@@ -12,7 +12,7 @@ int linha_erro = 1;
 
 enum{
     /*tipos*/
-        T_INT = 256, 
+        T_INT = 256, //x <= 255 reservados pra tabela ascii
         T_FLOAT,
         T_CHAR,
         T_LONG,
@@ -151,5 +151,6 @@ int main(void) {
 }
 
 //utilizar gcc lex.yy.c -o teste para rodar essa iteração mockada
+//./teste < teste.txt
 
 
