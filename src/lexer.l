@@ -192,7 +192,9 @@ static char decod_char(const char *text){
 ","         { return COMMA; }
 
 /* comentarios */
-"//" [^\n]* {}
+"//" [^\n]* {
+
+}
 
 "/*" {
     BEGIN(COMENTARIO)
@@ -226,7 +228,34 @@ static char decod_char(const char *text){
     return 0;
 }
 
-\n  { /* espacos e linhas */
+/* Literais */
+[0-9]+\.[0-9]+ {
+    yylval.dval = strtod(yytext, NULL);
+    return L_FLOAT;
+}
+
+[0-9]+ {
+    yyval.ival = (int)strtol(yytext, NULL, 10);
+    retrun L_INT;
+}
+
+'(\\.|[^"\\])*\' {
+    yylval.cval = decod_string(yytext);
+    return L_CHAR;
+}
+
+\"(\\.|[^"\\])*\" {
+    yylval.sval = decod_string(yytext);
+    return L_STRING;
+}
+
+[a-zA-Z_][a-zA-Z0-9]* {
+    yylval.sval = dup_string(yytext);
+    return IDENT;
+}
+
+/* espacos e linhas */
+\n  { 
     linha_erro++;
 }
 
@@ -242,6 +271,7 @@ static char decod_char(const char *text){
 
 %%
 
+#ifndef PARSER_TAB_H
 int main(void) {
     int token;
     while ((token = yylex()) != 0) {
@@ -249,6 +279,7 @@ int main(void) {
     }
     return 0;
 }
+#endif
 
 // Teste: gcc lex.yy.c -o teste -lfl
 // Execução: ./teste < teste.txt
