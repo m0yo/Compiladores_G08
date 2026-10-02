@@ -54,29 +54,57 @@ extern int yydebug;
     YYEOF = 0,                     /* "end of file"  */
     YYerror = 256,                 /* error  */
     YYUNDEF = 257,                 /* "invalid token"  */
-    NUM = 258,                     /* NUM  */
-    PLUS = 259,                    /* PLUS  */
-    MINUS = 260,                   /* MINUS  */
-    TIMES = 261,                   /* TIMES  */
-    DIVIDE = 262,                  /* DIVIDE  */
-    LPAREN = 263,                  /* LPAREN  */
-    RPAREN = 264                   /* RPAREN  */
+    T_INT = 258,                   /* T_INT  */
+    T_FLOAT = 259,                 /* T_FLOAT  */
+    T_CHAR = 260,                  /* T_CHAR  */
+    T_DOUBLE = 261,                /* T_DOUBLE  */
+    T_LONG = 262,                  /* T_LONG  */
+    F_IF = 263,                    /* F_IF  */
+    F_ELSE = 264,                  /* F_ELSE  */
+    F_WHILE = 265,                 /* F_WHILE  */
+    F_FOR = 266,                   /* F_FOR  */
+    F_DO = 267,                    /* F_DO  */
+    F_SWITCH = 268,                /* F_SWITCH  */
+    F_CASE = 269,                  /* F_CASE  */
+    F_BREAK = 270,                 /* F_BREAK  */
+    F_CONTINUE = 271,              /* F_CONTINUE  */
+    F_RETURN = 272,                /* F_RETURN  */
+    L_INT = 273,                   /* L_INT  */
+    L_FLOAT = 274,                 /* L_FLOAT  */
+    L_CHAR = 275,                  /* L_CHAR  */
+    L_STRING = 276,                /* L_STRING  */
+    IDENT = 277,                   /* IDENT  */
+    O_PLUS = 278,                  /* O_PLUS  */
+    O_MINUS = 279,                 /* O_MINUS  */
+    O_MULTI = 280,                 /* O_MULTI  */
+    O_DIV = 281,                   /* O_DIV  */
+    O_ASSIGN = 282,                /* O_ASSIGN  */
+    R_EQ = 283,                    /* R_EQ  */
+    R_NE = 284,                    /* R_NE  */
+    R_LT = 285,                    /* R_LT  */
+    R_GT = 286,                    /* R_GT  */
+    R_LE = 287,                    /* R_LE  */
+    R_GE = 288,                    /* R_GE  */
+    DM_AND = 289,                  /* DM_AND  */
+    DM_OR = 290,                   /* DM_OR  */
+    DM_NOT = 291,                  /* DM_NOT  */
+    LBRACE = 292,                  /* LBRACE  */
+    RBRACE = 293,                  /* RBRACE  */
+    LPAREN = 294,                  /* LPAREN  */
+    RPAREN = 295,                  /* RPAREN  */
+    LBRACKET = 296,                /* LBRACKET  */
+    RBRACKET = 297,                /* RBRACKET  */
+    COLON = 298,                   /* COLON  */
+    SEMICOLON = 299,               /* SEMICOLON  */
+    COMMA = 300,                   /* COMMA  */
+    UMINUS = 301                   /* UMINUS  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
-union YYSTYPE
-{
-#line 11 "parser.y"
-//define valor semantico
-    int intValue;
-
-#line 77 "parser.tab.h"
-
-};
-typedef union YYSTYPE YYSTYPE;
+typedef int YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define YYSTYPE_IS_DECLARED 1
 #endif
