@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ./vscode
 <<<<<<< HEAD
 src/parser.tab.c
@@ -8,3 +9,9 @@ src/lex.yy.c
 ./src/parser.tab.c
 ./src/parser.tab.h
 >>>>>>> 2bdd6ac (fix: Correção do .gitignore)
+=======
+.vscode/
+.src/lex.yy.c/
+.src/parser.tab.c/
+.src/parser.tab.h/
+>>>>>>> 66dc7cf (fix: Modificação no gitignore)
