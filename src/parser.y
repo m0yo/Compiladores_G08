@@ -16,7 +16,8 @@ void yyerror(const char *s);
 %}
 
 /* Símbolo inicial da gramática */
-%start expressao
+/* TODO O PROGRAMA */
+%start programa
 
 /*Tipos*/
 %token T_INT
