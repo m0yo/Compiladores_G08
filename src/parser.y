@@ -71,10 +71,10 @@ void yyerror(const char *s);
 /*Delimitadores*/
 %token LBRACE
 %token RBRACE
-%token LPAREN
-%token RPAREN
 %token LBRACKET
 %token RBRACKET
+%token LPAREN
+%token RPAREN
 %token COLON
 %token SEMICOLON
 %token COMMA
