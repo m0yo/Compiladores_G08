@@ -191,13 +191,18 @@ static char decod_char(const char *text){
 ";"         { return SEMICOLON; }
 ","         { return COMMA; }
 
-/* comentarios */
-"//" [^\n]* {
+    /* comentarios */
+"//"[^\n]* {
 
 }
 
 "/*" {
-    BEGIN(COMENTARIO)
+    BEGIN(COMENTARIO);
+}
+
+
+<COMENTARIO>"*/" {
+    BEGIN(INITIAL);
 }
 
 <COMENTARIO>[^*\n]+ {
@@ -206,14 +211,6 @@ static char decod_char(const char *text){
 
 <COMENTARIO>\n {
     linha_erro++;
-}
-
-<COMENTARIO>"*/" {
-    BEGIN(INITIAL);
-}
-
-<COMENTARIO>\*+[^/\n]* {
-    /* texto */
 }
 
 <COMENTARIO>\*+ {
@@ -228,19 +225,19 @@ static char decod_char(const char *text){
     return 0;
 }
 
-/* Literais */
+    /* Literais */
 [0-9]+\.[0-9]+ {
     yylval.dval = strtod(yytext, NULL);
     return L_FLOAT;
 }
 
 [0-9]+ {
-    yyval.ival = (int)strtol(yytext, NULL, 10);
-    retrun L_INT;
+    yylval.ival = (int)strtol(yytext, NULL, 10);
+    return L_INT;
 }
 
-'(\\.|[^"\\])*\' {
-    yylval.cval = decod_string(yytext);
+'(\\.|[^'\\])' {
+    yylval.cval = decod_char(yytext);
     return L_CHAR;
 }
 
@@ -249,12 +246,12 @@ static char decod_char(const char *text){
     return L_STRING;
 }
 
-[a-zA-Z_][a-zA-Z0-9]* {
+[a-zA-Z_][a-zA-Z0-9_]* {
     yylval.sval = dup_string(yytext);
     return IDENT;
 }
 
-/* espacos e linhas */
+    /* espacos e linhas */
 \n  { 
     linha_erro++;
 }
@@ -264,7 +261,7 @@ static char decod_char(const char *text){
 }
 
 
-/* caractere nao conhecido */
+    /* caractere nao conhecido */
 . {
     fprintf(stderr, "erro na linha %d: '%s'\n", linha_erro, yytext);
 }
