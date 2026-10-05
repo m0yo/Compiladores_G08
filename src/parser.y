@@ -15,12 +15,28 @@ int yylex(void);
 void yyerror(const char *s);
 %}
 
+/* Símbolo inicial da gramática */
+/* TODO O PROGRAMA */
+%start programa
+
 /*Tipos*/
 %token T_INT
 %token T_FLOAT
 %token T_CHAR
 %token T_DOUBLE
 %token T_LONG
+
+/*Controle de fluxo e laços de repetição*/
+%token F_IF
+%token F_ELSE
+%token F_WHILE
+%token F_FOR
+%token F_DO
+%token F_SWITCH
+%token F_CASE
+%token F_BREAK
+%token F_CONTINUE
+%token F_RETURN
 
 /*Literais (valores semânticos)*/
 %token L_INT
@@ -31,11 +47,12 @@ void yyerror(const char *s);
 /*Identificador*/
 %token IDENT
 
-/*Operadores aritméticos*/
+/*Operadores aritméticos e atribuição*/
 %token O_PLUS
 %token O_MINUS
 %token O_MULTI
 %token O_DIV
+%token O_ASSIGN
 
 /*Operadores relacionais*/
 %token R_EQ
@@ -51,13 +68,16 @@ void yyerror(const char *s);
 %token DM_NOT
 
 
-/*Não coloquei todos os delimitadores que estão no lexer.l*/
 /*Delimitadores*/
-%token LPAREN
-%token RPAREN
 %token LBRACE
 %token RBRACE
+%token LBRACKET
+%token RBRACKET
+%token LPAREN
+%token RPAREN
+%token COLON
 %token SEMICOLON
+%token COMMA
 
 
 /*Precedência*/
@@ -68,8 +88,8 @@ void yyerror(const char *s);
 %left R_LT R_GT R_LE R_GE
 %left O_PLUS O_MINUS
 %left O_MULTI O_DIV
-%right DM_NOT
-%right UMINUS
+%precedence DM_NOT
+%precedence UMINUS
 
 %%
 
@@ -103,51 +123,8 @@ expressao:
 
 %%
 
-int main(void) {
-    return yyparse();
-}
+
 
 void yyerror(const char *s) {
     fprintf(stderr, "Erro sintático: %s\n", s);
-int yylex(void);//funcao que le o proximo token
-void yyerror(const char *s);//funcao para tratar erros
-%}
-
-%union{//define valor semantico
-    int intValue;
-}
-
-//token com valor semantico(NUM é do tipo intValue e possui valor semantico como 10 por ex)
-%token <intValue> NUM;
-
-%token PLUS MINUS TIMES DIVIDE LPAREN RPAREN
-%left PLUS MINUS
-%left TIMES DIVIDE
-//define times e divide com maior precedencia que plus e minus
-
-%type <intValue> expressao//expressao resulta em um tipo intValue
-%%
-
-inicio:
-    expressao { printf("Resultado: %d\n", $1); }
-  ;
-
-expressao:
-    expressao PLUS expressao    { $$ = $1 + $3; }
-  | expressao MINUS expressao   { $$ = $1 - $3; }  
-  | expressao TIMES expressao   { $$ = $1 * $3; }
-  | expressao DIVIDE expressao  { $$ = $1 / $3; }
-  | LPAREN expressao RPAREN     { $$ = $2; }
-  | NUM                         { $$ = $1; } 
-  ;
-
-%%
-
-void yyerror(const char *s) {
-    fprintf(stderr, "Erro sintático: %s\n", s);
-}
-
-int main(void) {
-    yyparse();
-    return 0;
 }
