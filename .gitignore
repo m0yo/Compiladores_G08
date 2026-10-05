@@ -11,7 +11,14 @@ src/lex.yy.c
 >>>>>>> 2bdd6ac (fix: Correção do .gitignore)
 =======
 .vscode/
+<<<<<<< HEAD
 .src/lex.yy.c/
 .src/parser.tab.c/
 .src/parser.tab.h/
 >>>>>>> 66dc7cf (fix: Modificação no gitignore)
+=======
+.src/lex.yy.c
+.src/parser.tab.c
+.src/parser.tab.h
+.src/teste_lexer
+>>>>>>> 02cbe58 (fix: Execução de testes e correção de bugs)
