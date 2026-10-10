@@ -1,0 +1,20 @@
+int main() {
+    float x = 12.3456;
+    int y = 42;
+
+    char a = '\n';
+    char b = '\'';
+    char c = '\\';
+
+    string texto = "linha 1\nlinha 2\t\"teste\"";
+
+    // comentario de uma linha
+
+    /*
+       comentario de bloco
+       com duas linhas
+    */
+
+    x = x + y;
+    return 0;
+}
