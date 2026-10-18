@@ -1,87 +1,56 @@
 /*le o codigo fonte e gera os token pra o bison(parser)*/
-/*por enquanto mockado com um enum para cada simbolo*/
 
 %{ 
 #include<stdio.h>
 #include<stdlib.h>
-/*#include "parser.tab.h" descomentar isso depois que estiver integrado com o bison*/  
+#include "parser.tab.h" descomentar isso depois que estiver integrado com o bison
+%}
 
+%%
 
 int linha_erro = 1;
 
 
-enum{
-    /*tipos*/
-        T_INT = 256, //x <= 255 reservados pra tabela ascii
-        T_FLOAT,
-        T_CHAR,
-        T_LONG,
-        T_DOUBLE,
+ /* literal ponto flutuante */
+[0-9]+\.[0-9]*|\.[0-9]+  {
+    yylval.floatValue = atof(yytext);
+    return L_FLOAT;
+}
 
-    /*controle de fluxo e laços de repeticao*/
-        F_IF,
-        F_ELSE,
-        F_WHILE,
-        F_FOR,
-        F_DO,
-        F_SWITCH,
-        F_CASE,
-        F_BREAK,
-        F_CONTINUE,
-        F_RETURN,
+ /* literal inteiro */
+[0-9]+  {
+    yylval.intValue = atoi(yytext);
+    return L_INT;
+}
 
-    /*literais(valores semanticos)*/
-        L_INT,
-        L_FLOAT,
-        L_STRING, 
-        L_CHAR,
+ /* literal de caracter simples, entre aspas simples*/
+'[^\\']'  {
+    yylval.charValue = yytext[1];
+    return L_CHAR;
+}
 
-    /*identificador*/
-        IDENT,
-
-    /*operadores aritméticos*/
-        O_PLUS,
-        O_MINUS,
-        O_MULTI,
-        O_DIV,
-
-    /*operador de atribuicao*/
-        O_ASSIGN,
-
-    /*operadores relacionais*/
-        R_EQ,
-        R_NE,
-        R_LT,
-        R_GT,
-        R_LE,
-        R_GE,
-
-    /*operadores logicos*/
-        DM_AND,
-        DM_OR,
-        DM_NOT,
-
-    /*delimitadores*/
-        LBRACE, 
-        RBRACE, 
-        LPAREN, 
-        RPAREN, 
-        LBRACKET, 
-        RBRACKET, 
-        COLON,
-        SEMICOLON, 
-        COMMA
-    
-};
-
-%}
-
-%option noyywrap
-
-/*adicionar regex  para ignorar comentarios e logica de contagem de linhas para apontar o erro, em cima desse regex*/
-
-/*expressao regular*/
-%%
+ /* literal de caracter: sequências de escape padrão */
+'\\.'     {
+    switch (yytext[2]) {
+        case 'a':  yylval.charValue = '\a'; break;
+        case 'b':  yylval.charValue = '\b'; break;
+        case 'f':  yylval.charValue = '\f'; break;
+        case 'n':  yylval.charValue = '\n'; break;
+        case 'r':  yylval.charValue = '\r'; break;
+        case 't':  yylval.charValue = '\t'; break;
+        case 'v':  yylval.charValue = '\v'; break;
+        case '\\': yylval.charValue = '\\'; break;
+        case '\'': yylval.charValue = '\''; break;
+        case '"':  yylval.charValue = '"';  break;
+        case '?':  yylval.charValue = '?';  break;
+        case '0':  yylval.charValue = '\0'; break;
+        default:
+            fprintf(stderr, "Sequência de escape inválida: %s\n", yytext);
+            yylval.charValue = yytext[2];
+            break;
+    }
+    return CHAR_LIT;
+}
 
 "int"       { return T_INT; }
 "float"     { return T_FLOAT; }
@@ -125,32 +94,26 @@ enum{
 "("         { return LPAREN; }
 ")"         { return RPAREN; }
 ":"         {return COLON; }
+"*"         { return O_MULTI; }
+"/"         { return O_DIV; }
+
+"="         { return O_ASSIGN; }
 ";"         { return SEMICOLON; }
 ","         { return COMMA; }
 
-[0-9]+\.[0-9]       { return L_FLOAT; }
-[0-9]+              { return L_INT; }
-'(\\.|[^'\\])'      { return L_CHAR; } /*aceita caracteres com \x ou caracteres comuns que não sejam ' nem \*/
-\"(\\.|[^"\\])*\"   { return L_STRING; }/*aceita 0 ou mais caracteres internos, permitindo sequencia de esquape (\n) e texto normal sem ser " ou \*/
 
-[a-zA-Z_][a-zA-Z0-9_]*      {return IDENT; }
-
-\n      {linha_erro++;}
-[ \t\r]+ {}
-
-.       {fprintf(stderr, "erro na linha %d: '%s'\n", linha_erro, yytext);}
-
-%%
-
-int main(void) {
-    int token;
-    while ((token = yylex()) != 0) {
-        printf("Token: %d | Lexema: '%s' | Linha: %d\n", token, yytext, linha_erro);
-    }
-    return 0;
+[a-zA-Z_][a-zA-Z0-9_]*  {
+    yylval.strValue = strdup(yytext);
+    return IDENT;
 }
 
-//utilizar gcc lex.yy.c -o teste para rodar essa iteração mockada
-//./teste < teste.txt
+[ \t\n]+  { /* ignora espaços, tabs e quebras de linha */ }
 
+.        { printf("Caractere não reconhecido: %s\n", yytext); }
+ 
+%%
+
+int yywrap(void) {
+    return 1;
+}
 
