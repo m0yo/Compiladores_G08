@@ -42,7 +42,7 @@ void yyerror(const char *s);
 %token L_INT
 %token L_FLOAT
 %token L_CHAR
-%token L_STRING
+
 
 /*Identificador*/
 %token IDENT
