@@ -11,9 +11,19 @@
 #include <stdlib.h>
 
 int yylex(void);
+int yyparse(void);
 
 void yyerror(const char *s);
 %}
+
+/*valor semantico dos tokens e não-terminais*/
+%union{
+    int intValue; /*L_INT*/
+    double floatValue; /*L_FLOAT*/
+    char charValue  /*L_CHAR*/
+    char *strValue; /*identificadores*/
+    /*nos da ast entram aqui*/
+}
 
 /*Tipos*/
 %token T_INT
@@ -22,14 +32,14 @@ void yyerror(const char *s);
 %token T_DOUBLE
 %token T_LONG
 
-/*Literais (valores semânticos)*/
-%token L_INT
-%token L_FLOAT
-%token L_CHAR
-%token L_STRING
+/*tokens que carregam valor semantico*/
+%token <intValue> NUM
+%token <floatValue> FLOAT_LIT
+%token <charValue> L_CHAR
+%token <strValue> IDENT
 
 /*Identificador*/
-%token IDENT
+/*%token IDENT*/
 
 /*Operadores aritméticos*/
 %token O_PLUS
@@ -57,7 +67,11 @@ void yyerror(const char *s);
 %token RPAREN
 %token LBRACE
 %token RBRACE
+%token RBRACKET
+%token LBRACKET
 %token SEMICOLON
+%token COLON
+%token COMMA
 
 
 /*Precedência*/
