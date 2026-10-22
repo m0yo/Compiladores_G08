@@ -12,7 +12,6 @@
 
 int yylex(void);
 int yyparse(void);
-
 void yyerror(const char *s);
 %}
 
@@ -20,7 +19,7 @@ void yyerror(const char *s);
 %union{
     int intValue; /*L_INT*/
     double floatValue; /*L_FLOAT*/
-    char charValue  /*L_CHAR*/
+    char charValue  ;/*L_CHAR*/
     char *strValue; /*identificadores*/
     /*nos da ast entram aqui*/
 }
@@ -33,8 +32,8 @@ void yyerror(const char *s);
 %token T_LONG
 
 /*tokens que carregam valor semantico*/
-%token <intValue> NUM
-%token <floatValue> FLOAT_LIT
+%token <intValue> L_FLOAT
+%token <floatValue> L_FLOAT
 %token <charValue> L_CHAR
 %token <strValue> IDENT
 
@@ -85,7 +84,14 @@ void yyerror(const char *s);
 %right DM_NOT
 %right UMINUS
 
+
+/*define programa como a raiz da gramatica*/
+%start programa
+
 %%
+
+programa:
+    expressao;
 
 expressao:
       expressao O_PLUS expressao
