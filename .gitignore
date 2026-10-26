@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 ./vscode
 <<<<<<< HEAD
 src/parser.tab.c
@@ -22,3 +23,10 @@ src/lex.yy.c
 .src/parser.tab.h
 .src/teste_lexer
 >>>>>>> 02cbe58 (fix: Execução de testes e correção de bugs)
+=======
+.vscode/
+.src/lex.yy.c
+.src/parser.tab.c
+.src/parser.tab.h
+.src/teste_lexer
+>>>>>>> origin/main

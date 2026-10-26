@@ -123,6 +123,9 @@ expressao:
 
 %%
 
+int main(void) {
+    return yyparse();
+}
 
 void yyerror(const char *s) {
     fprintf(stderr, "Erro sintático: %s\n", s);
