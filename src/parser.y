@@ -93,6 +93,34 @@ void yyerror(const char *s);
 
 %%
 
+programa:
+      /* vazio */
+    | programa comando
+    ;
+
+comando:
+      declaracao
+    | atribuicao
+    | expressao SEMICOLON
+    ;
+
+declaracao:
+      tipo IDENT SEMICOLON
+    | tipo IDENT O_ASSIGN expressao SEMICOLON
+    ;
+
+atribuicao:
+      IDENT O_ASSIGN expressao SEMICOLON
+    ;
+
+tipo:
+      T_INT
+    | T_FLOAT
+    | T_CHAR
+    | T_DOUBLE
+    | T_LONG
+    ;
+
 expressao:
       expressao O_PLUS expressao
     | expressao O_MINUS expressao

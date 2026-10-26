@@ -128,7 +128,7 @@ enum{
 ";"         { return SEMICOLON; }
 ","         { return COMMA; }
 
-[0-9]+\.[0-9]       { return L_FLOAT; }
+[0-9]+\.[0-9]+       { return L_FLOAT; }
 [0-9]+              { return L_INT; }
 '(\\.|[^'\\])'      { return L_CHAR; } /*aceita caracteres com \x ou caracteres comuns que não sejam ' nem \*/
 \"(\\.|[^"\\])*\"   { return L_STRING; }/*aceita 0 ou mais caracteres internos, permitindo sequencia de esquape (\n) e texto normal sem ser " ou \*/
