@@ -11,13 +11,18 @@
 #include <stdlib.h>
 
 int yylex(void);
-
+int yyparse(void);
 void yyerror(const char *s);
 %}
 
-/* Símbolo inicial da gramática */
-/* TODO O PROGRAMA */
-%start programa
+/*valor semantico dos tokens e não-terminais*/
+%union{
+    int intValue; /*L_INT*/
+    double floatValue; /*L_FLOAT*/
+    char charValue  ;/*L_CHAR*/
+    char *strValue; /*identificadores*/
+    /*nos da ast entram aqui*/
+}
 
 /*Tipos*/
 %token T_INT
@@ -26,26 +31,14 @@ void yyerror(const char *s);
 %token T_DOUBLE
 %token T_LONG
 
-/*Controle de fluxo e laços de repetição*/
-%token F_IF
-%token F_ELSE
-%token F_WHILE
-%token F_FOR
-%token F_DO
-%token F_SWITCH
-%token F_CASE
-%token F_BREAK
-%token F_CONTINUE
-%token F_RETURN
-
-/*Literais (valores semânticos)*/
-%token L_INT
-%token L_FLOAT
-%token L_CHAR
-%token L_STRING
+/*tokens que carregam valor semantico*/
+%token <intValue> L_FLOAT
+%token <floatValue> L_FLOAT
+%token <charValue> L_CHAR
+%token <strValue> IDENT
 
 /*Identificador*/
-%token IDENT
+/*%token IDENT*/
 
 /*Operadores aritméticos e atribuição*/
 %token O_PLUS
@@ -71,12 +64,10 @@ void yyerror(const char *s);
 /*Delimitadores*/
 %token LBRACE
 %token RBRACE
-%token LBRACKET
 %token RBRACKET
-%token LPAREN
-%token RPAREN
-%token COLON
+%token LBRACKET
 %token SEMICOLON
+%token COLON
 %token COMMA
 
 
@@ -91,7 +82,14 @@ void yyerror(const char *s);
 %precedence DM_NOT
 %precedence UMINUS
 
+
+/*define programa como a raiz da gramatica*/
+%start programa
+
 %%
+
+programa:
+    expressao;
 
 expressao:
       expressao O_PLUS expressao
