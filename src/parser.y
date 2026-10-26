@@ -40,11 +40,12 @@ void yyerror(const char *s);
 /*Identificador*/
 /*%token IDENT*/
 
-/*Operadores aritméticos*/
+/*Operadores aritméticos e atribuição*/
 %token O_PLUS
 %token O_MINUS
 %token O_MULTI
 %token O_DIV
+%token O_ASSIGN
 
 /*Operadores relacionais*/
 %token R_EQ
@@ -60,10 +61,7 @@ void yyerror(const char *s);
 %token DM_NOT
 
 
-/*Não coloquei todos os delimitadores que estão no lexer.l*/
 /*Delimitadores*/
-%token LPAREN
-%token RPAREN
 %token LBRACE
 %token RBRACE
 %token RBRACKET
@@ -81,8 +79,8 @@ void yyerror(const char *s);
 %left R_LT R_GT R_LE R_GE
 %left O_PLUS O_MINUS
 %left O_MULTI O_DIV
-%right DM_NOT
-%right UMINUS
+%precedence DM_NOT
+%precedence UMINUS
 
 
 /*define programa como a raiz da gramatica*/
