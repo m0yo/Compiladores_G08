@@ -113,7 +113,44 @@ typedef struct ASTNode{
         struct {
             struct ASTNode *stmts;      //cabeça da lista encadeada 
         } block;
-}data;
+    }data;
 }ASTNode;
+
+/*CONSTRUTORES DE NOS (alocacao de memoria)*/
+//Literais
+ASTNode *new_num_node(int value);
+ASTNode *new_float_node(double value);
+ASTNode *new_char_node(char value);
+ASTNode *new_bool_node(int value);
+
+//Identificador 
+ASTNode *new_id_node(const char *name);
+
+//Operadores 
+ASTNode *new_binop_node(int op, ASTNode *left, ASTNode *right);
+ASTNode *new_unaryop_node(int op, ASTNode *operand);
+
+//Comandos 
+ASTNode *new_assign_node(const char *name, ASTNode *expr);
+ASTNode *new_decl_node(SymType type, const char *name, ASTNode *init);
+ASTNode *new_expr_stmt_node(ASTNode *expr);
+
+//Controle de fluxo 
+ASTNode *new_if_node(ASTNode *cond, ASTNode *then_b, ASTNode *else_b);
+ASTNode *new_while_node(ASTNode *cond, ASTNode *body);
+ASTNode *new_for_node(ASTNode *init, ASTNode *cond, ASTNode *step,
+                      ASTNode *body);
+
+//Estrutural 
+ASTNode *new_block_node(ASTNode *stmts);
+
+/*
+ Avaliador: percorre a AST e executa o programa
+*/
+EvalResult eval_ast(ASTNode *node);
+
+//Liberação de memória: percorre a árvore recursivamente
+
+void free_ast(ASTNode *node);
 
 #endif 
