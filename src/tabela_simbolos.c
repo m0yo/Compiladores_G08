@@ -2,23 +2,31 @@
 #include <string.h>
 #include "tabela_simbolos.h"
 
-// Definição oficial dos arrays paralelos
-char tabela_nomes[MAX_SIMBOLOS][MAX_TAMANHO_NOME];
-int tabela_tipos[MAX_SIMBOLOS];
-double tabela_valores[MAX_SIMBOLOS];
-int total_simbolos = 0;
+/*tabela hash em que cada indice é o endereço do primeio elemento (bucket)
+de uma lista encadeada de entradas que tem o mesmo indice de hash*/
+static SymEntry *tabela[MAX_TAMANHO];
 
-void inicializar_tabela() {
-    total_simbolos = 0;
+
+//calcula o indice de hash para uma string
+static unsigned int hash(const char *nome) {
+    unsigned int hash = 5381;
+    while (*nome) {
+        hash = ((hash<<5) + hash) + (unsigned char)(*nome++); 
+    }
+    return hash % MAX_TAMANHO;
 }
 
-int buscar_simbolo(char *nome) {
-    for (int i = 0; i < total_simbolos; i++) {
-        if (strcmp(tabela_nomes[i], nome) == 0) {
-            return i; // Retorna o índice do símbolo encontrado
+SymEntry *buscar_simbolo(char *nome){
+    unsigned int idx = hash(nome); //determina o bucket da hash table
+    SymEntry *entry = table[idx]; //inicio da lista encadeada no bucket
+    while(e) {
+        if(strcmp(entry->name, nome) == 0) {
+            return entry; //encontrou, regtorna ponteiro para a entrada
         }
+        entry = entry->next; //proximo nó
+
     }
-    return -1;
+    return NULL; //não encontrou
 }
 
 int inserir_simbolo(char *nome, int tipo, double valor) {

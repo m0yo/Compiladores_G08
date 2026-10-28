@@ -39,8 +39,6 @@ const char *tipo_para_string(SymType tipo); //retorna o tipo da variavel
 
 void sym_print(void); //imprime a tabela de simbolos
 
-void sym_inicializar_tabela(void); //inicializa a tabela de simbolos  
-
 void sym_limpar_tabela(void); //limpa a tabela de simbolos
 
 #endif
