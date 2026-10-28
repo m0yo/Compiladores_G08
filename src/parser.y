@@ -9,6 +9,7 @@
 %{
 #include <stdio.h>
 #include <stdlib.h>
+#include "tabela_simbolos.h"
 
 int yylex(void);
 int yyparse(void);
@@ -32,7 +33,7 @@ void yyerror(const char *s);
 %token T_LONG
 
 /*tokens que carregam valor semantico*/
-%token <intValue> L_FLOAT
+%token <intValue> L_INT
 %token <floatValue> L_FLOAT
 %token <charValue> L_CHAR
 %token <strValue> IDENT
@@ -66,6 +67,8 @@ void yyerror(const char *s);
 %token RBRACE
 %token RBRACKET
 %token LBRACKET
+%token LPAREN
+%token RPAREN
 %token SEMICOLON
 %token COLON
 %token COMMA
@@ -122,6 +125,7 @@ expressao:
 %%
 
 int main(void) {
+    inicializar_tabela();
     return yyparse();
 }
 
