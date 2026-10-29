@@ -29,26 +29,64 @@ SymEntry *buscar_simbolo(char *nome){
     return NULL; //não encontrou
 }
 
-int inserir_simbolo(char *nome, int tipo, double valor) {
-    // Verifica se já existe e atualiza o valor
-    int idx = buscar_simbolo(nome);
-    if (idx != -1) {
-        tabela_valores[idx] = valor;
-        tabela_tipos[idx] = tipo;
-        return idx;
+SymEntry *inserir_simbolo(char *nome, SymType tipo, SymValue valor) {
+    // Verifica se já existe e atualiza o valor caso exista
+    SymEntry *entrada = buscar_simbolo(nome);
+    if(entrada){
+        entrada->value = valor; //atualiza o valor existente
+        return entrada;
     }
 
-    // Se não existe e há espaço, insere na próxima posição livre
-    if (total_simbolos < MAX_SIMBOLOS) {
-        strcpy(tabela_nomes[total_simbolos], nome);
-        tabela_tipos[total_simbolos] = tipo;
-        tabela_valores[total_simbolos] = valor;
-        
-        int pos_criada = total_simbolos;
-        total_simbolos++;
-        return pos_criada; // Retorna o índice do novo símbolo
-    } else {
-        fprintf(stderr, "Erro: Tabela de símbolos cheia!\n");
-        return -1;
+
+    //cria uma nova entrada
+    unsignet int idx = hash(nome);
+    entrada = (SymEntry *)malloc(sizeof(SymEntry));
+    if(!entrada){
+        fprintf(stderr, "Erro: Falha na alocação de memória para a entrada '%s' da tabela de símbolos!\n", nome);
+        exit(EXIT_FAILURE);
+    }
+    entrada->name = strdup(nome);
+    entrada->type = tipo;
+    entrada->value = valor;
+    entrada->next = tabela[idx]; //insere no inicio da lista encadeada do bucket
+    tabela[idx] = entrada; //atualiza o ponteiro do bucket para a nova
+    return entrada; //retorna ponteiro para a nova entrada
+}
+
+//função que imprime as entradas da tabela, feita pelo chat pra debuggar
+void sym_print(void) {
+    printf("Tabela de Símbolos:\n");
+    for (int i = 0; i < MAX_TAMANHO; i++) {
+        SymEntry *entry = tabela[i];
+        while (entry) {
+            printf("Nome: %s, Tipo: %s, Valor: ", entry->name, tipo_para_string(entry->type));
+            switch (entry->type) {
+                case TYPE_INT:
+                    printf("%d", entry->value.intValue);
+                    break;
+                case TYPE_FLOAT:
+                    printf("%f", entry->value.floatValue);
+                    break;
+                case TYPE_CHAR:
+                    printf("%c", entry->value.charValue);
+                    break;
+            }
+            printf("\n");
+            entry = entry->next;
+        }
+    }
+}
+
+//libera a memoria alocada para a tabela de simbolos
+void limpar_tabela(void) {
+    for (int i = 0; i < MAX_TAMANHO; i++) {
+        SymEntry *entry = tabela[i];
+        while (entry) {
+            SymEntry *temp = entry;
+            entry = entry->next;
+            free(temp->name);
+            free(temp);
+        }
+        tabela[i] = NULL;
     }
 }
