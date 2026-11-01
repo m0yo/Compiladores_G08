@@ -4,81 +4,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-/*#include "parser.tab.h" descomentar isso depois que estiver integrado com o bison*/  
+#include "parser.tab.h"
 
 int linha_erro = 1;
 
-enum{
-    /*tipos*/
-        T_INT = 256, //x <= 255 reservados pra tabela ascii
-        T_FLOAT,
-        T_CHAR,
-        T_LONG,
-        T_DOUBLE,
-
-    /*controle de fluxo e laços de repeticao*/
-        F_IF,
-        F_ELSE,
-        F_WHILE,
-        F_FOR,
-        F_DO,
-        F_SWITCH,
-        F_CASE,
-        F_BREAK,
-        F_CONTINUE,
-        F_RETURN,
-
-    /*literais(valores semanticos)*/
-        L_INT,
-        L_FLOAT,
-        L_STRING, 
-        L_CHAR,
-
-    /*identificador*/
-        IDENT,
-
-    /*operadores aritméticos*/
-        O_PLUS,
-        O_MINUS,
-        O_MULTI,
-        O_DIV,
-
-    /*operador de atribuicao*/
-        O_ASSIGN,
-
-    /*operadores relacionais*/
-        R_EQ,
-        R_NE,
-        R_LT,
-        R_GT,
-        R_LE,
-        R_GE,
-
-    /*operadores logicos*/
-        DM_AND,
-        DM_OR,
-        DM_NOT,
-
-    /*delimitadores*/
-        LBRACE, 
-        RBRACE, 
-        LPAREN, 
-        RPAREN, 
-        LBRACKET, 
-        RBRACKET, 
-        COLON,
-        SEMICOLON, 
-        COMMA
-};
-
-typedef union{
-    int ival;
-    float dval;
-    char cval;
-    char *sval;
-} YYSTYPE;
-
+#ifdef LEXER_STANDALONE
 YYSTYPE yylval;
+#endif
 
 static char trad_esc(char escape){
     switch (escape) {
@@ -268,7 +200,7 @@ static char decod_char(const char *text){
 
 %%
 
-#ifndef PARSER_TAB_H
+#ifdef LEXER_STANDALONE
 int main(void) {
     int token;
     while ((token = yylex()) != 0) {
@@ -278,5 +210,4 @@ int main(void) {
 }
 #endif
 
-// Teste: gcc lex.yy.c -o teste -lfl
-// Execução: ./teste < teste.txt
+// Teste do lexer isolado: make lexer_exe && ./lexer_exe < tests/teste_lexer.txt
