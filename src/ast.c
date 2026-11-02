@@ -111,10 +111,39 @@ ASTNode *new_block_node(ASTNode *statements) {
 
 //funcoes auxiliares de execucao
 
-//converte double para symvalue 
+//converte para symvalue 
 static SymValue to_sym_value(SymType type, double value){
     Symvalue sym_value;
     switch(type){
-        case TYPE_FLOAT: sym_value.
+        case TYPE_FLOAT: sym_value.floatValue = (float)value; break;
+        case TYPE_INT: sym_value.intValue = (int)value; break;
+        case TYPE_CHAR: sym_value.charValue = (char)value; break;
+        default: sym_value.intValue = (int)value; break; //default para int
+    }
+    return sym_value;
+}
+
+//extrai o valor double de symentry
+static double sym_val_as_double(const SymEntry *entry){
+    switch(entry->type){
+        case TYPE_FLOAT: return (double)entry->value.floatValue;
+        case TYPE_CHAR: return (double)entry->value.charValue;
+        default:        return (double)entry->value.intValue;
+    }
+}
+
+//imprime um valor formtado de acordo com o tipo
+static void print_sym_value(SymType type, double value){
+    switch(type){
+        case TYPE_FLOAT: printf("%f", value); break;
+        case TYPE_CHAR: {
+            char c = (char)(int)value;
+            if(c >= 32 && c <= 126) //verifica se é um caractere imprimivel
+                printf("'%c'", c);
+            else
+                printf("%d", (int)c); break; //imprime em hexadecimal
+        }
+        case TYPE_BOOL: printf("%s", ((int)value) ? "true" : "false"); break;
+        default:        printf("%d", (int)value); break;
     }
 }
