@@ -12,43 +12,56 @@
 #include "tabela_simbolos.h"
 
 int yylex(void);
-int yyparse(void);
 void yyerror(const char *s);
 %}
 
-/*valor semantico dos tokens e não-terminais*/
-%union{
-    int intValue; /*L_INT*/
-    double floatValue; /*L_FLOAT*/
-    char charValue  ;/*L_CHAR*/
-    char *strValue; /*identificadores*/
-    /*nos da ast entram aqui*/
+/* Valores semânticos compartilhados com o lexer (yylval) */
+%union {
+    int ival;
+    double dval;
+    char cval;
+    char *sval;
 }
 
-/*Tipos*/
+/* Símbolo inicial da gramática */
+%start programa
+
+/* Tipos */
 %token T_INT
 %token T_FLOAT
 %token T_CHAR
 %token T_DOUBLE
 %token T_LONG
 
-/*tokens que carregam valor semantico*/
-%token <intValue> L_INT
-%token <floatValue> L_FLOAT
-%token <charValue> L_CHAR
-%token <strValue> IDENT
+/* Controle de fluxo e laços de repetição */
+%token F_IF
+%token F_ELSE
+%token F_WHILE
+%token F_FOR
+%token F_DO
+%token F_SWITCH
+%token F_CASE
+%token F_BREAK
+%token F_CONTINUE
+%token F_RETURN
 
-/*Identificador*/
-/*%token IDENT*/
+/* Literais (valores semânticos) */
+%token <ival> L_INT
+%token <dval> L_FLOAT
+%token <cval> L_CHAR
+%token <sval> L_STRING
 
-/*Operadores aritméticos e atribuição*/
+/* Identificador */
+%token <sval> IDENT
+
+/* Operadores aritméticos e atribuição */
 %token O_PLUS
 %token O_MINUS
 %token O_MULTI
 %token O_DIV
 %token O_ASSIGN
 
-/*Operadores relacionais*/
+/* Operadores relacionais */
 %token R_EQ
 %token R_NE
 %token R_LT
@@ -56,26 +69,23 @@ void yyerror(const char *s);
 %token R_LE
 %token R_GE
 
-/*Operadores lógicos*/
+/* Operadores lógicos */
 %token DM_AND
 %token DM_OR
 %token DM_NOT
 
-
-/*Delimitadores*/
+/* Delimitadores */
 %token LBRACE
 %token RBRACE
-%token RBRACKET
 %token LBRACKET
+%token RBRACKET
 %token LPAREN
 %token RPAREN
-%token SEMICOLON
 %token COLON
+%token SEMICOLON
 %token COMMA
 
-
-/*Precedência*/
-
+/* Precedência */
 %left DM_OR
 %left DM_AND
 %left R_EQ R_NE
@@ -85,14 +95,11 @@ void yyerror(const char *s);
 %precedence DM_NOT
 %precedence UMINUS
 
-
-/*define programa como a raiz da gramatica*/
-%start programa
-
 %%
 
 programa:
-    expressao;
+    expressao
+    ;
 
 expressao:
       expressao O_PLUS expressao
@@ -121,14 +128,12 @@ expressao:
     | IDENT
     ;
 
-
 %%
-
-int main(void) {
-    inicializar_tabela();
-    return yyparse();
-}
 
 void yyerror(const char *s) {
     fprintf(stderr, "Erro sintático: %s\n", s);
+}
+
+int main(void) {
+    return yyparse();
 }

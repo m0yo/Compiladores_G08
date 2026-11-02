@@ -1,6 +1,6 @@
 # Compiladores_G08
 
-> ⚠️ **Projeto em estágio inicial.** O lexer já está funcional; parser e interpretador ainda estão por vir. Este README serve como guia de orientação para quem for contribuir ou acompanhar o projeto.
+> ⚠️ **Projeto em estágio inicial.** O lexer está funcional e já está integrado ao parser (que por enquanto reconhece apenas expressões); a gramática de comandos, a análise semântica e o interpretador ainda estão por vir. Este README serve como guia de orientação para quem for contribuir ou acompanhar o projeto.
 
 ## Sobre o projeto
 
@@ -10,8 +10,9 @@ Este projeto é um **interpretador para a linguagem C, implementado na própria 
 
 ## Estado atual do projeto
 
-- **Lexer (análise léxica)** — implementado em Flex (`src/lexer.l`), reconhece palavras-chave, operadores, literais, identificadores e delimitadores de C, retornando os tokens correspondentes
-- ⬜ Parser (análise sintática, com Bison) — construção da Árvore Sintática Abstrata (AST)
+- ✅ **Lexer (análise léxica)** — implementado em Flex (`src/lexer.l`), reconhece palavras-chave, operadores, literais, identificadores, delimitadores e comentários de C, retornando os tokens e os valores semânticos (`yylval`)
+- 🚧 **Parser (análise sintática, com Bison)** — `src/parser.y` já está integrado ao lexer e reconhece expressões; faltam declarações e comandos
+- ⬜ Construção da Árvore Sintática Abstrata (AST)
 - ⬜ Análise semântica
 - ⬜ Motor de execução (interpretação da AST)
 - ⬜ Suporte completo a tipos, ponteiros, structs, etc.
@@ -27,7 +28,7 @@ código-fonte (.c)
    [ Lexer ]  → quebra o texto em tokens (Flex) -> pronto
       │
       ▼
-   [ Parser ] → organiza os tokens em uma AST (Bison) -> próximo passo
+   [ Parser ] → organiza os tokens em uma AST (Bison) -> em andamento
       │
       ▼
 [ Análise semântica ] → valida tipos, escopos, declarações ->
@@ -36,49 +37,51 @@ código-fonte (.c)
  [ Interpretador ] → percorre a AST e executa o programa ->
 ```
 
-O lexer atual já define um `enum` com o código de cada tipo de token (tipos, palavras-chave de controle de fluxo, operadores, literais, delimitadores) em `src/lexer.l`. O próximo passo natural é integrá-lo ao Bison, descomentando o include do `parser.tab.h` já deixado como comentário no arquivo.
+O lexer e o parser compartilham os mesmos tokens e tipos de valor semântico (`yylval`): eles são declarados em `src/parser.y` (`%token` e `%union`) e o Bison os exporta no `parser.tab.h`, que o `lexer.l` inclui.
 
 ## Estrutura do projeto
 
 ```
 .
 ├── docs/            # documentação em Markdown (gerada como site via MkDocs)
-│   ├── index.md
-│   ├── lexer.md
-│   └── contributing.md
 ├── site/            # site estático gerado pelo MkDocs (não editar manualmente)
 ├── src/
-│   └── lexer.l      # regras do analisador léxico (Flex)
+│   ├── lexer.l      # regras do analisador léxico (Flex)
+│   └── parser.y     # gramática do analisador sintático (Bison)
+├── tests/           # arquivos de entrada para testar o lexer
+├── Makefile         # compila lexer + parser (arquivos gerados ficam em build/)
 ├── mkdocs.yml       # configuração do site de documentação
 ├── LICENSE
 └── README.md
 ```
 
-## Como compilar e rodar o lexer
+## Como compilar e rodar
 
-Pré-requisito: ter o [Flex](https://github.com/westes/flex) instalado (`flex --version` para conferir).
+Pré-requisitos: `gcc`, `make`, [Flex](https://github.com/westes/flex) e Bison 3.0 ou superior (o `%precedence` exige essa versão; confira com `bison --version`).
 
 ```bash
-cd src
+# compila lexer + parser juntos (gera build/ e o executável parser_exe)
+make
 
-# gera o código C a partir das regras do lexer
-flex lexer.l
+# roda o parser sobre uma expressão (código de saída 0 = aceita, 1 = erro sintático)
+echo '10 + 5' | ./parser_exe
 
-# compila o código gerado
-gcc lex.yy.c -o teste
+# compila só o lexer, imprimindo os tokens reconhecidos
+make lexer_exe
+./lexer_exe < tests/teste_lexer.txt
 
-# roda o lexer sobre um arquivo de exemplo
-./teste < exemplo.c
+# remove os arquivos gerados
+make clean
 ```
 
-A saída mostra, para cada token reconhecido: o código numérico do token, o lexema (texto exato) e a linha onde apareceu. Exemplo com `int x = 10;`:
+A saída do lexer isolado mostra o código do token, o lexema (texto exato) e a linha onde apareceu. Exemplo com `int x = 10;`:
 
 ```
-Token: 256 | Lexema: 'int' | Linha: 1
-Token: 275 | Lexema: 'x'   | Linha: 1
-Token: 280 | Lexema: '='   | Linha: 1
-Token: 271 | Lexema: '10'  | Linha: 1
-Token: 297 | Lexema: ';'   | Linha: 1
+Token: 258 | Lexema: 'int' | Linha: 1
+Token: 277 | Lexema: 'x'   | Linha: 1
+Token: 282 | Lexema: '='   | Linha: 1
+Token: 273 | Lexema: '10'  | Linha: 1
+Token: 299 | Lexema: ';'   | Linha: 1
 ```
 
 ## Documentação
@@ -95,7 +98,8 @@ Isso sobe um servidor local (geralmente em `http://127.0.0.1:8000`) com o site d
 ## Roadmap
 
 - [x] Implementar o lexer com Flex
-- [ ] Integrar o lexer ao Bison e implementar o parser
+- [x] Integrar o lexer ao Bison (tokens e `yylval` compartilhados)
+- [ ] Implementar o parser (declarações e comandos)
 - [ ] Construir a AST (Árvore Sintática Abstrata)
 - [ ] Implementar análise semântica (tipos, escopos)
 - [ ] Implementar interpretação de expressões simples (aritmética, atribuição)
@@ -106,12 +110,12 @@ Isso sobe um servidor local (geralmente em `http://127.0.0.1:8000`) com o site d
 
 ## Como contribuir
 
-1. Crie uma branch a partir da `main` (ex: `feature/parser-bison`)
+1. Atualize a `develop` e crie sua branch a partir dela (ex: `feature/parser-comandos`)
 2. Descreva no commit/PR qual parte do pipeline (lexer, parser, etc.) está sendo alterada
-3. Sempre que possível, adicione um caso de teste (`.c` de exemplo) cobrindo a mudança
-4. Abra um Pull Request explicando o que foi feito e o porquê
+3. Sempre que possível, adicione um caso de teste cobrindo a mudança
+4. Abra um Pull Request para a `develop` explicando o que foi feito e o porquê
 
-Veja também `docs/contributing.md` para convenções específicas do projeto.
+Veja também `docs/contributing.md` para as convenções do projeto (branches, commits, issues e PRs).
 
 ## Licença
 
