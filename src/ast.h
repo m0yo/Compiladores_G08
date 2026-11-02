@@ -121,7 +121,6 @@ typedef struct ASTNode{
 ASTNode *new_num_node(int value);
 ASTNode *new_float_node(double value);
 ASTNode *new_char_node(char value);
-ASTNode *new_bool_node(int value);
 
 //Identificador 
 ASTNode *new_id_node(const char *name);
@@ -136,9 +135,9 @@ ASTNode *new_decl_node(SymType type, const char *name, ASTNode *init);
 ASTNode *new_expr_stmt_node(ASTNode *expr);
 
 //Controle de fluxo 
-ASTNode *new_if_node(ASTNode *cond, ASTNode *then_b, ASTNode *else_b);
-ASTNode *new_while_node(ASTNode *cond, ASTNode *body);
-ASTNode *new_for_node(ASTNode *init, ASTNode *cond, ASTNode *step,
+ASTNode *new_if_stmt_node(ASTNode *cond, ASTNode *then_branch, ASTNode *else_branch);
+ASTNode *new_while_stmt_node(ASTNode *cond, ASTNode *body);
+ASTNode *new_for_stmt_node(ASTNode *init, ASTNode *cond, ASTNode *step,
                       ASTNode *body);
 
 //Estrutural 
