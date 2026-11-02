@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include "tabela_simbolos.h"
 
@@ -18,8 +19,8 @@ static unsigned int hash(const char *nome) {
 
 SymEntry *buscar_simbolo(char *nome){
     unsigned int idx = hash(nome); //determina o bucket da hash table
-    SymEntry *entry = table[idx]; //inicio da lista encadeada no bucket
-    while(e) {
+    SymEntry *entry = tabela[idx]; //inicio da lista encadeada no bucket
+    while(entry) {
         if(strcmp(entry->name, nome) == 0) {
             return entry; //encontrou, regtorna ponteiro para a entrada
         }
@@ -39,7 +40,7 @@ SymEntry *inserir_simbolo(char *nome, SymType tipo, SymValue valor) {
 
 
     //cria uma nova entrada
-    unsignet int idx = hash(nome);
+    unsigned int idx = hash(nome);
     entrada = (SymEntry *)malloc(sizeof(SymEntry));
     if(!entrada){
         fprintf(stderr, "Erro: Falha na alocação de memória para a entrada '%s' da tabela de símbolos!\n", nome);
@@ -51,6 +52,15 @@ SymEntry *inserir_simbolo(char *nome, SymType tipo, SymValue valor) {
     entrada->next = tabela[idx]; //insere no inicio da lista encadeada do bucket
     tabela[idx] = entrada; //atualiza o ponteiro do bucket para a nova
     return entrada; //retorna ponteiro para a nova entrada
+}
+
+const char *tipo_para_string(SymType tipo) {
+    switch (tipo) {
+        case TYPE_INT:   return "int";
+        case TYPE_FLOAT: return "float";
+        case TYPE_CHAR:  return "char";
+        default:         return "?";
+    }
 }
 
 //função que imprime as entradas da tabela, feita pelo chat pra debuggar

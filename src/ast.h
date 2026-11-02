@@ -3,7 +3,7 @@
 #ifndef AST_H
 #define AST_H
 
-//#include "tabela_simbolos.h"
+#include "tabela_simbolos.h"
 
 /*tipos de nos da arvore*/
 typedef enum{
@@ -16,12 +16,12 @@ typedef enum{
 
     //operadores
     AST_BINARYOP, //(+, -, %)
-    AST_UNARYOP, //(=, !)
+    AST_UNARYOP, //(-, !)
 
     //comandos
     AST_DECL, //declaracao variavel
     AST_ASSIGN , //atribuicao de valor a variavel
-    AST_EXPRESS_STMT,// ;
+    AST_EXPR_STMT,// ;
 
     //controle de fluxo
     AST_IF,
@@ -30,6 +30,10 @@ typedef enum{
 
     AST_BLOCK //lista de comandos
 } TipoNo;
+
+/*operadores que nao sao um unico caractere ASCII
+(+ - * / < > & | ! usam o proprio caractere)*/
+enum { OP_EQ = 256, OP_NEQ, OP_LEQ, OP_GEQ };
 
 
 //resultado tipado da avaliacao de uma expressao
@@ -152,4 +156,7 @@ resultado eval_ast(ASTNode *node);
 
 void free_ast(ASTNode *node);
 
-#endif 
+//Impressao visual da arvore
+void print_ast(ASTNode *node, int level);
+
+#endif

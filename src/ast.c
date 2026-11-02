@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "ast.h"
 #include "tabela_simbolos.h"
 
@@ -105,7 +106,7 @@ ASTNode *new_for_stmt_node(ASTNode *init, ASTNode *cond, ASTNode *step, ASTNode 
 
 ASTNode *new_block_node(ASTNode *statements) {
     ASTNode *node = alloc_node(AST_BLOCK);
-    node->data.block.statements = statements;
+    node->data.block.stmts = statements;
     return node;
 }
 
@@ -120,7 +121,7 @@ static SymType promote_type(SymType left, SymType right){
 
 //converte para symvalue 
 static SymValue to_sym_value(SymType type, double value){
-    Symvalue sym_value;
+    SymValue sym_value;
     switch(type){
         case TYPE_FLOAT: sym_value.floatValue = (float)value; break;
         case TYPE_INT: sym_value.intValue = (int)value; break;
@@ -148,9 +149,9 @@ static void print_sym_value(SymType type, double value){
             if(c >= 32 && c <= 126) //verifica se é um caractere imprimivel
                 printf("'%c'", c);
             else
-                printf("%d", (int)c); break; //imprime em hexadecimal
+                printf("%d", (int)c); //nao imprimivel: mostra o codigo
+            break;
         }
-        case TYPE_BOOL: printf("%s", ((int)value) ? "true" : "false"); break;
         default:        printf("%d", (int)value); break;
     }
 }
@@ -161,7 +162,7 @@ percorre todos os nos via next
 */
 
 static resultado exec_list(ASTNode *node){
-    resultado last = {0,0, TYPE_INT}; //valor default
+    resultado last = {0, TYPE_INT}; //valor default
     while(node){
         last = eval_ast(node);
         node = node->next;
@@ -175,7 +176,7 @@ caso == expressao, retorna `resultado` com o valor e tipo da expressao
 */
 
 resultado eval_ast(ASTNode *node){
-    resultado res = {0,0, TYPE_INT}; 
+    resultado res = {0, TYPE_INT}; 
 
     if(!node) return res; 
 
@@ -200,6 +201,10 @@ resultado eval_ast(ASTNode *node){
         //identificador
         case AST_ID: {
             SymEntry *entry = buscar_simbolo(node->data.id.name);
+            if(!entry){
+                fprintf(stderr, "Erro: variável '%s' não declarada!\n", node->data.id.name);
+                exit(EXIT_FAILURE);
+            }
             res.val = sym_val_as_double(entry);
             res.Type = entry->type;
             break;
@@ -218,21 +223,21 @@ resultado eval_ast(ASTNode *node){
                         res.val = left.val + right.val;
                     else
                         res.val = (double)((int)left.val + (int)right.val);
-                    res.Type = left.Type; //assume o tipo do lado esquerdo
+                    res.Type = rtype;
                     break;
                 case '-':
                     if(rtype == TYPE_FLOAT)
                         res.val = left.val - right.val;
                     else
                         res.val = (double)((int)left.val - (int)right.val);
-                    res.Type = left.Type; //assume o tipo do lado esquerdo
+                    res.Type = rtype;
                     break;
                 case '*':
                     if(rtype == TYPE_FLOAT)
                         res.val = left.val * right.val;
                     else
                         res.val = (double)((int)left.val * (int)right.val);
-                    res.Type = left.Type; //assume o tipo do lado esquerdo
+                    res.Type = rtype;
                     break;
 
                 case '/':
@@ -258,11 +263,11 @@ resultado eval_ast(ASTNode *node){
                     break;
                 
                 //operadores de igualdade
-                case EQ:
+                case OP_EQ:
                     res.val = (double)(left.val == right.val);
                     res.Type = TYPE_INT;
                     break;
-                case NEQ:
+                case OP_NEQ:
                     res.val = (double)(left.val != right.val);
                     res.Type = TYPE_INT;
                     break;
@@ -276,11 +281,11 @@ resultado eval_ast(ASTNode *node){
                     res.val = (double)(left.val > right.val);
                     res.Type = TYPE_INT;
                     break;
-                case LEQ:
+                case OP_LEQ:
                     res.val = (double)(left.val <= right.val);
                     res.Type = TYPE_INT;
                     break;
-                case GEQ:
+                case OP_GEQ:
                     res.val = (double)(left.val >= right.val);
                     res.Type = TYPE_INT;
                     break;
@@ -314,9 +319,13 @@ resultado eval_ast(ASTNode *node){
     case AST_ASSIGN: {
         resultado expr = eval_ast(node->data.assign.expr);
         SymEntry *entry = buscar_simbolo(node->data.assign.name);
+        if(!entry){
+            fprintf(stderr, "Erro: variável '%s' não declarada!\n", node->data.assign.name);
+            exit(EXIT_FAILURE);
+        }
         entry->value = to_sym_value(entry->type, expr.val); //converte para o tipo da variavel
-        printf("%s %s = ", sym_type_name(entry->type), node->data.assign.name);
-        print_value(entry->type, sym_val_as_double(entry));
+        printf("%s %s = ", tipo_para_string(entry->type), node->data.assign.name);
+        print_sym_value(entry->type, sym_val_as_double(entry));
         printf("\n");
         break;
     }  
@@ -325,20 +334,20 @@ resultado eval_ast(ASTNode *node){
     case AST_DECL: {
         double init_val = 0.0;
         if (node->data.decl.init) {
-            EvalResult r = eval_ast(node->data.decl.init);
+            resultado r = eval_ast(node->data.decl.init);
             init_val = r.val;
         }
         SymValue v = to_sym_value(node->data.decl.type, init_val);
-        sym_set(node->data.decl.name, node->data.decl.type, v);
+        inserir_simbolo(node->data.decl.name, node->data.decl.type, v);
         if (node->data.decl.init) {
             printf("Declarado: %s : %s = ", node->data.decl.name,
-                   sym_type_name(node->data.decl.type));
-            print_value(node->data.decl.type,
-                        sym_val_as_double(sym_lookup(node->data.decl.name)));
+                   tipo_para_string(node->data.decl.type));
+            print_sym_value(node->data.decl.type,
+                        sym_val_as_double(buscar_simbolo(node->data.decl.name)));
             printf("\n");
         } else {
             printf("Declarado: %s : %s\n", node->data.decl.name,
-                   sym_type_name(node->data.decl.type));
+                   tipo_para_string(node->data.decl.type));
         }
         break;
     }
@@ -378,7 +387,6 @@ resultado eval_ast(ASTNode *node){
     case AST_FOR: {
         if(node->data.for_stmt.init)
             eval_ast(node->data.for_stmt.init);
-        }
         //loop que testa condicao, executa corpo e passo
         while(1){
             if(node->data.for_stmt.cond){
@@ -394,10 +402,221 @@ resultado eval_ast(ASTNode *node){
 
     //bloco de comandos
     case AST_BLOCK: {
-        exec_list(node->data.block.statements);
+        exec_list(node->data.block.stmts);
         break;
     }
 
+    }
     return res;
 }
-    
+
+//ferramentas de depuracao criadas pela ia
+/* ====================================================
+ * Impressão visual da AST (para demonstração)
+ *
+ * Percorre a árvore recursivamente, imprimindo cada nó
+ * com indentação proporcional ao nível de profundidade.
+ * Ao final de cada nó, percorre a lista encadeada (->next).
+ * ==================================================== */
+
+/* Converte o código interno do operador para string legível */
+static const char *op_to_str(int op) {
+    switch (op) {
+        case '+': return "+";
+        case '-': return "-";
+        case '*': return "*";
+        case '/': return "/";
+        case '&': return "&&";
+        case '|': return "||";
+        case '!': return "!";
+        case OP_EQ:  return "==";
+        case OP_NEQ: return "!=";
+        case '<': return "<";
+        case '>': return ">";
+        case OP_LEQ: return "<=";
+        case OP_GEQ: return ">=";
+        default:  return "?";
+    }
+}
+
+void print_ast(ASTNode *node, int level) {
+    if (!node) return;
+
+    /* Indentação: 2 espaços por nível */
+    for (int i = 0; i < level; i++) printf("  ");
+
+    switch (node->tipo) {
+
+    case AST_INT:
+        printf("NUM (%d)\n", node->data.num.value);
+        break;
+
+    case AST_FLOAT:
+        printf("FLOAT (%g)\n", node->data.flt.value);
+        break;
+
+    case AST_CHAR:
+        printf("CHAR ('%c')\n", node->data.chr.value);
+        break;
+
+    case AST_ID:
+        printf("ID (%s)\n", node->data.id.name);
+        break;
+
+    case AST_BINARYOP:
+        printf("BINOP (%s)\n", op_to_str(node->data.binaryop.op));
+        print_ast(node->data.binaryop.left,  level + 1);
+        print_ast(node->data.binaryop.right, level + 1);
+        break;
+
+    case AST_UNARYOP:
+        printf("UNARYOP (%s)\n", op_to_str(node->data.unaryop.op));
+        print_ast(node->data.unaryop.operand, level + 1);
+        break;
+
+    case AST_ASSIGN:
+        printf("ASSIGN (%s)\n", node->data.assign.name);
+        print_ast(node->data.assign.expr, level + 1);
+        break;
+
+    case AST_DECL:
+        printf("DECL (%s : %s)\n",
+               node->data.decl.name,
+               tipo_para_string(node->data.decl.type));
+        if (node->data.decl.init) {
+            for (int i = 0; i < level + 1; i++) printf("  ");
+            printf("init:\n");
+            print_ast(node->data.decl.init, level + 2);
+        }
+        break;
+
+    case AST_EXPR_STMT:
+        printf("EXPR_STMT\n");
+        print_ast(node->data.expr_stmt.expr, level + 1);
+        break;
+
+    case AST_IF:
+        printf("IF\n");
+        for (int i = 0; i < level + 1; i++) printf("  ");
+        printf("cond:\n");
+        print_ast(node->data.if_stmt.cond, level + 2);
+        for (int i = 0; i < level + 1; i++) printf("  ");
+        printf("then:\n");
+        print_ast(node->data.if_stmt.then_branch, level + 2);
+        if (node->data.if_stmt.else_branch) {
+            for (int i = 0; i < level + 1; i++) printf("  ");
+            printf("else:\n");
+            print_ast(node->data.if_stmt.else_branch, level + 2);
+        }
+        break;
+
+    case AST_WHILE:
+        printf("WHILE\n");
+        for (int i = 0; i < level + 1; i++) printf("  ");
+        printf("cond:\n");
+        print_ast(node->data.while_stmt.cond, level + 2);
+        for (int i = 0; i < level + 1; i++) printf("  ");
+        printf("body:\n");
+        print_ast(node->data.while_stmt.body, level + 2);
+        break;
+
+    case AST_FOR:
+        printf("FOR\n");
+        if (node->data.for_stmt.init) {
+            for (int i = 0; i < level + 1; i++) printf("  ");
+            printf("init:\n");
+            print_ast(node->data.for_stmt.init, level + 2);
+        }
+        if (node->data.for_stmt.cond) {
+            for (int i = 0; i < level + 1; i++) printf("  ");
+            printf("cond:\n");
+            print_ast(node->data.for_stmt.cond, level + 2);
+        }
+        if (node->data.for_stmt.step) {
+            for (int i = 0; i < level + 1; i++) printf("  ");
+            printf("step:\n");
+            print_ast(node->data.for_stmt.step, level + 2);
+        }
+        for (int i = 0; i < level + 1; i++) printf("  ");
+        printf("body:\n");
+        print_ast(node->data.for_stmt.body, level + 2);
+        break;
+
+    case AST_BLOCK:
+        printf("BLOCK\n");
+        print_ast(node->data.block.stmts, level + 1);
+        break;
+    }
+
+    /* Percorre a lista encadeada (próximo comando no mesmo nível) */
+    print_ast(node->next, level);
+}
+
+/* ====================================================
+ * free_ast: libera recursivamente toda a memória da AST
+ * ==================================================== */
+void free_ast(ASTNode *node) {
+    if (!node) return;
+
+    /* Libera o próximo na lista encadeada */
+    free_ast(node->next);
+
+    switch (node->tipo) {
+    case AST_INT:
+    case AST_FLOAT:
+    case AST_CHAR:
+        /* Nenhuma alocação interna */
+        break;
+
+    case AST_ID:
+        free(node->data.id.name);
+        break;
+
+    case AST_BINARYOP:
+        free_ast(node->data.binaryop.left);
+        free_ast(node->data.binaryop.right);
+        break;
+
+    case AST_UNARYOP:
+        free_ast(node->data.unaryop.operand);
+        break;
+
+    case AST_ASSIGN:
+        free(node->data.assign.name);
+        free_ast(node->data.assign.expr);
+        break;
+
+    case AST_DECL:
+        free(node->data.decl.name);
+        free_ast(node->data.decl.init);
+        break;
+
+    case AST_EXPR_STMT:
+        free_ast(node->data.expr_stmt.expr);
+        break;
+
+    case AST_IF:
+        free_ast(node->data.if_stmt.cond);
+        free_ast(node->data.if_stmt.then_branch);
+        free_ast(node->data.if_stmt.else_branch);
+        break;
+
+    case AST_WHILE:
+        free_ast(node->data.while_stmt.cond);
+        free_ast(node->data.while_stmt.body);
+        break;
+
+    case AST_FOR:
+        free_ast(node->data.for_stmt.init);
+        free_ast(node->data.for_stmt.cond);
+        free_ast(node->data.for_stmt.step);
+        free_ast(node->data.for_stmt.body);
+        break;
+
+    case AST_BLOCK:
+        free_ast(node->data.block.stmts);
+        break;
+    }
+
+    free(node);
+}

@@ -1,6 +1,6 @@
 #ifndef TABELA_SIMBOLOS_H
 #define TABELA_SIMBOLOS_H
-#define MAX_TAMANHO = 211
+#define MAX_TAMANHO  211
 
 /*A tabela é responvsavel por armazenar pares de nome e valor inteiro para cada variavel declarada
 utilizando uma hash table de tamanho fixo*/
@@ -39,6 +39,6 @@ const char *tipo_para_string(SymType tipo); //retorna o tipo da variavel
 
 void sym_print(void); //imprime a tabela de simbolos
 
-void sym_limpar_tabela(void); //limpa a tabela de simbolos
+void limpar_tabela(void); //limpa a tabela de simbolos
 
 #endif
