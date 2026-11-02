@@ -111,6 +111,13 @@ ASTNode *new_block_node(ASTNode *statements) {
 
 //funcoes auxiliares de execucao
 
+//promocao de tipo C-standard, float domina, char promove para int
+static SymType promote_type(SymType left, SymType right){
+    if(left == TYPE_FLOAT || right == TYPE_FLOAT)
+        return TYPE_FLOAT;
+    return TYPE_INT; //default para int
+}
+
 //converte para symvalue 
 static SymValue to_sym_value(SymType type, double value){
     Symvalue sym_value;
@@ -147,3 +154,250 @@ static void print_sym_value(SymType type, double value){
         default:        printf("%d", (int)value); break;
     }
 }
+
+/*
+execucao de uma lista encadeada de comandos
+percorre todos os nos via next
+*/
+
+static resultado exec_list(ASTNode *node){
+    resultado last = {0,0, TYPE_INT}; //valor default
+    while(node){
+        last = eval_ast(node);
+        node = node->next;
+    }
+    return last;
+}    
+
+/*
+avalia recursivamente a arvore
+caso == expressao, retorna `resultado` com o valor e tipo da expressao
+*/
+
+resultado eval_ast(ASTNode *node){
+    resultado res = {0,0, TYPE_INT}; 
+
+    if(!node) return res; 
+
+    switch(node->tipo){
+
+        //literais
+        case AST_INT:
+            res.val = (double)node->data.num.value;
+            res.Type = TYPE_INT;
+            break;
+        
+        case AST_FLOAT:
+            res.val = node->data.flt.value;
+            res.Type = TYPE_FLOAT;
+            break;
+            
+        case AST_CHAR:
+            res.val = (double)node->data.chr.value;
+            res.Type = TYPE_CHAR;
+            break;  
+        
+        //identificador
+        case AST_ID: {
+            SymEntry *entry = buscar_simbolo(node->data.id.name);
+            res.val = sym_val_as_double(entry);
+            res.Type = entry->type;
+            break;
+        }
+
+        //operacao binaria
+        case AST_BINARYOP: {
+            resultado left = eval_ast(node->data.binaryop.left);
+            resultado right = eval_ast(node->data.binaryop.right);
+            SymType rtype = promote_type(left.Type, right.Type);   
+            
+            
+            switch(node->data.binaryop.op){
+                case '+': 
+                    if(rtype == TYPE_FLOAT)
+                        res.val = left.val + right.val;
+                    else
+                        res.val = (double)((int)left.val + (int)right.val);
+                    res.Type = left.Type; //assume o tipo do lado esquerdo
+                    break;
+                case '-':
+                    if(rtype == TYPE_FLOAT)
+                        res.val = left.val - right.val;
+                    else
+                        res.val = (double)((int)left.val - (int)right.val);
+                    res.Type = left.Type; //assume o tipo do lado esquerdo
+                    break;
+                case '*':
+                    if(rtype == TYPE_FLOAT)
+                        res.val = left.val * right.val;
+                    else
+                        res.val = (double)((int)left.val * (int)right.val);
+                    res.Type = left.Type; //assume o tipo do lado esquerdo
+                    break;
+
+                case '/':
+                    if(right.val == 0.0){
+                        fprintf(stderr, "Erro: Divisão por zero!\n");
+                        exit(EXIT_FAILURE);
+                    }
+                    if(rtype == TYPE_FLOAT)
+                        res.val = left.val / right.val;
+                    else
+                        res.val = (double)((int)left.val / (int)right.val);
+                    res.Type = rtype;
+                    break;
+
+                //operadores logicos
+                case '&':
+                    res.val = (double)(left.val && right.val);
+                    res.Type = TYPE_INT;
+                    break;
+                case '|':
+                    res.val = (double)(left.val || right.val);
+                    res.Type = TYPE_INT;
+                    break;
+                
+                //operadores de igualdade
+                case EQ:
+                    res.val = (double)(left.val == right.val);
+                    res.Type = TYPE_INT;
+                    break;
+                case NEQ:
+                    res.val = (double)(left.val != right.val);
+                    res.Type = TYPE_INT;
+                    break;
+
+                //operadores relacionais
+                case '<':
+                    res.val = (double)(left.val < right.val);
+                    res.Type = TYPE_INT;
+                    break;
+                case '>':
+                    res.val = (double)(left.val > right.val);
+                    res.Type = TYPE_INT;
+                    break;
+                case LEQ:
+                    res.val = (double)(left.val <= right.val);
+                    res.Type = TYPE_INT;
+                    break;
+                case GEQ:
+                    res.val = (double)(left.val >= right.val);
+                    res.Type = TYPE_INT;
+                    break;
+                default:
+                    fprintf(stderr, "Erro: Operador binário desconhecido '%d'!\n", node->data.binaryop.op);
+                    exit(EXIT_FAILURE);
+        }
+        break;       
+
+    }
+    //operacao unaria
+    case AST_UNARYOP: {
+        resultado operand = eval_ast(node->data.unaryop.operand);
+        switch(node->data.unaryop.op){
+            case '-':
+                res.val = -operand.val;
+                res.Type = operand.Type;
+                break;
+            case '!':
+                res.val = (double)(!operand.val);
+                res.Type = TYPE_INT;
+                break;
+            default:
+                fprintf(stderr, "Erro: Operador unário desconhecido '%c'!\n", node->data.unaryop.op);
+                exit(EXIT_FAILURE);
+        }
+        break;
+    }
+
+    //atribuicao
+    case AST_ASSIGN: {
+        resultado expr = eval_ast(node->data.assign.expr);
+        SymEntry *entry = buscar_simbolo(node->data.assign.name);
+        entry->value = to_sym_value(entry->type, expr.val); //converte para o tipo da variavel
+        printf("%s %s = ", sym_type_name(entry->type), node->data.assign.name);
+        print_value(entry->type, sym_val_as_double(entry));
+        printf("\n");
+        break;
+    }  
+    
+    //declaracao
+    case AST_DECL: {
+        double init_val = 0.0;
+        if (node->data.decl.init) {
+            EvalResult r = eval_ast(node->data.decl.init);
+            init_val = r.val;
+        }
+        SymValue v = to_sym_value(node->data.decl.type, init_val);
+        sym_set(node->data.decl.name, node->data.decl.type, v);
+        if (node->data.decl.init) {
+            printf("Declarado: %s : %s = ", node->data.decl.name,
+                   sym_type_name(node->data.decl.type));
+            print_value(node->data.decl.type,
+                        sym_val_as_double(sym_lookup(node->data.decl.name)));
+            printf("\n");
+        } else {
+            printf("Declarado: %s : %s\n", node->data.decl.name,
+                   sym_type_name(node->data.decl.type));
+        }
+        break;
+    }
+
+    //expressoes como comando (expr;)
+    case AST_EXPR_STMT: {
+        resultado expr = eval_ast(node->data.expr_stmt.expr);
+        printf("Resultado da expressão: ");
+        print_sym_value(expr.Type, expr.val);
+        printf("\n");
+        break;
+    }
+
+    //controle de fluxo
+    //if/ if-else
+    case AST_IF: {
+        resultado cond = eval_ast(node->data.if_stmt.cond);
+        if (cond.val) {
+            exec_list(node->data.if_stmt.then_branch);
+        } else if (node->data.if_stmt.else_branch) {
+            exec_list(node->data.if_stmt.else_branch);
+        }
+        break;
+    }   
+
+    //while
+    case AST_WHILE: {
+        while(1){
+            resultado cond = eval_ast(node->data.while_stmt.cond);
+            if(!cond.val) break;
+            exec_list(node->data.while_stmt.body);
+        }
+        break;
+    }
+
+    //for
+    case AST_FOR: {
+        if(node->data.for_stmt.init)
+            eval_ast(node->data.for_stmt.init);
+        }
+        //loop que testa condicao, executa corpo e passo
+        while(1){
+            if(node->data.for_stmt.cond){
+                resultado cond = eval_ast(node->data.for_stmt.cond);
+                if(!cond.val) break;
+            }
+            exec_list(node->data.for_stmt.body);
+            if(node->data.for_stmt.step)
+                eval_ast(node->data.for_stmt.step);
+        }
+        break;
+    }
+
+    //bloco de comandos
+    case AST_BLOCK: {
+        exec_list(node->data.block.statements);
+        break;
+    }
+
+    return res;
+}
+    

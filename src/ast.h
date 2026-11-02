@@ -146,7 +146,7 @@ ASTNode *new_block_node(ASTNode *stmts);
 /*
  Avaliador: percorre a AST e executa o programa
 */
-EvalResult eval_ast(ASTNode *node);
+resultado eval_ast(ASTNode *node);
 
 //Liberação de memória: percorre a árvore recursivamente
 
