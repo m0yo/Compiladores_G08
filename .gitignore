@@ -1,32 +1,10 @@
-<<<<<<< HEAD
-<<<<<<< HEAD
-./vscode
-<<<<<<< HEAD
+.vscode/
+
+build/
+parser_exe
+lexer_exe
+
+src/lex.yy.c
 src/parser.tab.c
 src/parser.tab.h
-src/lex.yy.c
-=======
-./src/lex.yy.c
-./src/parser.tab.c
-./src/parser.tab.h
->>>>>>> 2bdd6ac (fix: Correção do .gitignore)
-=======
-.vscode/
-<<<<<<< HEAD
-.src/lex.yy.c/
-.src/parser.tab.c/
-.src/parser.tab.h/
->>>>>>> 66dc7cf (fix: Modificação no gitignore)
-=======
-.src/lex.yy.c
-.src/parser.tab.c
-.src/parser.tab.h
-.src/teste_lexer
->>>>>>> 02cbe58 (fix: Execução de testes e correção de bugs)
-=======
-.vscode/
-.src/lex.yy.c
-.src/parser.tab.c
-.src/parser.tab.h
-.src/teste_lexer
->>>>>>> origin/main
+src/teste_lexer
