@@ -347,6 +347,8 @@ Alterações que modificam o comportamento do compilador devem possuir testes co
 
 Novos testes devem ser adicionados à estrutura existente de testes.
 
+Os testes disponíveis hoje (lexer e AST/tabela de símbolos) e os comandos para executá-los estão em [Como executar](como_executar.md).
+
 ## 9. Boas práticas gerais
 
 - Mantenha o código simples e legível.
