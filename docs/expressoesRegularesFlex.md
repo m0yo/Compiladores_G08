@@ -37,7 +37,7 @@ Abrange as constantes numéricas inteiras e reais (floats), contemplando múltip
 * **Token associado:** `L_FLOAT`
 * **Descrição:** Sequência de dígitos antes do ponto, o caractere ponto (`\.`) e um ou mais dígitos após o ponto, permitindo múltiplos dígitos decimais na parte fracionária.
 
-> Pendência: o lexer.l ainda não implementa essa regra corretamente (usa `[0-9]+\.[0-9]`, aceitando apenas um dígito após o ponto). Ajustar o scanner para bater com as especificações
+> Nota: o `lexer.l` implementa exatamente `[0-9]+\.[0-9]+`. Formas como `.5`, `5.` e notação científica (`1e3`) **não** são reconhecidas como `L_FLOAT`.
 
 ### Exemplos:
 | Lexema de Entrada | Token Esperado |
@@ -108,24 +108,26 @@ Para evitar que o parser receba caracteres indesejados, os espaços e quebras de
 * **Expressões Regulares:**
   * `[ \t\r]+`: Ignora espaços horizontais, tabulações e retornos de carro.
   * `\n`: Incrementa a variável de controle de linha (`linha_erro++`), essencial para a emissão correta de mensagens de erro detalhadas.
-  * `.`: Captura qualquer caractere inválido não reconhecido pelas regras anteriores, disparando uma mensagem de erro na saída padrão de erro (`stderr`) formatada com a linha correspondente.
+  * `.`: Captura qualquer caractere inválido não reconhecido pelas regras anteriores, disparando uma mensagem de erro na saída padrão de erro (`stderr`) formatada com a linha correspondente. Nenhum token é retornado nesse caso: o caractere é descartado e a análise continua.
 
 ---
 
 ## 7. Comentários (Linha Única e Bloco)
 
-> Pendente de implementação no `lexer.l` atual. O scanner hoje só tem um comentário para lembrete no código, a regra em si ainda não foi escrita.
-
-> **Nota de Implementação:** O suporte a comentários no analisador léxico deve ignorar trechos de documentação e anotações do programador sem retornar tokens para o parser.
+> **Nota de Implementação:** o analisador léxico ignora trechos de documentação e anotações do programador sem retornar tokens para o parser. As duas formas de comentário já estão implementadas em `lexer.l`.
 
 ### 7.1. Comentário de Linha Única
-* **Expressão Regular:** `\/\/.*`
-* **Descrição:** Identifica comentários iniciados por `//` e é válido para toda a linha restante.
+* **Expressão Regular (no `lexer.l`):** `"//"[^\n]*` (equivalente a `\/\/.*`)
+* **Descrição:** Identifica comentários iniciados por `//`, válidos até o fim da linha. A quebra de linha não faz parte do comentário e continua sendo contada pela regra `\n`.
 * **Exemplo:** `// Inicialização do contador` (Ignorado pelo scanner).
 
 ### 7.2. Comentário de Bloco
-* **Expressão Regular:** `\/\*[^*]*\*+([^/*][^*]*\*+)*\/`
-* **Descrição:** Identifica blocos de comentários iniciados por `/*` e terminados por `*/`, permitindo múltiplas linhas.
+* **Implementação:** em vez de uma única expressão regular, o scanner usa um *estado exclusivo* do Flex (`%x COMENTARIO`):
+  * `"/*"` entra no estado `COMENTARIO`;
+  * dentro dele, `[^*\n]+` e `\*+` consomem o texto e os asteriscos, `\n` incrementa `linha_erro` e `"*/"` volta ao estado `INITIAL`;
+  * se o arquivo terminar com o comentário aberto (`<<EOF>>`), é impressa a mensagem `erro na linha N: comentario de bloco nao terminado` em `stderr`.
+* **Por que não uma ER única:** a expressão `\/\*[^*]*\*+([^/*][^*]*\*+)*\/` reconhece o comentário inteiro de uma vez, mas não permite contar as linhas internas nem detectar um comentário não terminado. Por isso o estado exclusivo.
+* **Descrição:** Identifica blocos de comentários iniciados por `/*` e terminados por `*/`, permitindo múltiplas linhas. Comentários de bloco não podem ser aninhados.
 * **Exemplo:**
   ```c
   /* Bloco de código 
