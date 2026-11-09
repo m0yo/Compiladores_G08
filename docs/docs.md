@@ -9,10 +9,15 @@ Os arquivos da documentação devem ser armazenados no diretório `docs/`:
 ```text
 docs/
 ├── index.md
+├── trabalho_compiladores.md
+├── docs.md
 ├── contributing.md
+├── como_executar.md
 ├── lexer.md
-├── parser.md
-└── ...
+├── expressoesRegularesFlex.md
+├── gramatica.md
+├── ast.md
+└── tabela_simbolos.md
 ```
 
 Os arquivos devem utilizar o formato **Markdown (`.md`)** e seguir a estrutura definida no `mkdocs.yml`.

@@ -23,11 +23,17 @@ theme:
     - content.code.copy
 
 nav:
-  - Ínicio: index.md
+  - Início: index.md
   - Trabalho de Compiladores: trabalho_compiladores.md
   - Contribuição:
     - Documentação: docs.md
     - Guia de Commits: contributing.md
+  - Como executar: como_executar.md
   - Scanner:
+    - Analisador Léxico: lexer.md
     - Expressões Regulares: expressoesRegularesFlex.md
+  - Parser:
     - Gramática: gramatica.md
+  - Interpretador:
+    - AST e Avaliador: ast.md
+    - Tabela de Símbolos: tabela_simbolos.md

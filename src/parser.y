@@ -9,35 +9,59 @@
 %{
 #include <stdio.h>
 #include <stdlib.h>
+#include "tabela_simbolos.h"
 
 int yylex(void);
-
 void yyerror(const char *s);
 %}
 
-/*Tipos*/
+/* Valores semânticos compartilhados com o lexer (yylval) */
+%union {
+    int ival;
+    double dval;
+    char cval;
+    char *sval;
+}
+
+/* Símbolo inicial da gramática */
+%start programa
+
+/* Tipos */
 %token T_INT
 %token T_FLOAT
 %token T_CHAR
 %token T_DOUBLE
 %token T_LONG
 
-/*Literais (valores semânticos)*/
-%token L_INT
-%token L_FLOAT
-%token L_CHAR
-%token L_STRING
+/* Controle de fluxo e laços de repetição */
+%token F_IF
+%token F_ELSE
+%token F_WHILE
+%token F_FOR
+%token F_DO
+%token F_SWITCH
+%token F_CASE
+%token F_BREAK
+%token F_CONTINUE
+%token F_RETURN
 
-/*Identificador*/
-%token IDENT
+/* Literais (valores semânticos) */
+%token <ival> L_INT
+%token <dval> L_FLOAT
+%token <cval> L_CHAR
+%token <sval> L_STRING
 
-/*Operadores aritméticos*/
+/* Identificador */
+%token <sval> IDENT
+
+/* Operadores aritméticos e atribuição */
 %token O_PLUS
 %token O_MINUS
 %token O_MULTI
 %token O_DIV
+%token O_ASSIGN
 
-/*Operadores relacionais*/
+/* Operadores relacionais */
 %token R_EQ
 %token R_NE
 %token R_LT
@@ -45,33 +69,37 @@ void yyerror(const char *s);
 %token R_LE
 %token R_GE
 
-/*Operadores lógicos*/
+/* Operadores lógicos */
 %token DM_AND
 %token DM_OR
 %token DM_NOT
 
-
-/*Não coloquei todos os delimitadores que estão no lexer.l*/
-/*Delimitadores*/
-%token LPAREN
-%token RPAREN
+/* Delimitadores */
 %token LBRACE
 %token RBRACE
+%token LBRACKET
+%token RBRACKET
+%token LPAREN
+%token RPAREN
+%token COLON
 %token SEMICOLON
+%token COMMA
 
-
-/*Precedência*/
-
+/* Precedência */
 %left DM_OR
 %left DM_AND
 %left R_EQ R_NE
 %left R_LT R_GT R_LE R_GE
 %left O_PLUS O_MINUS
 %left O_MULTI O_DIV
-%right DM_NOT
-%right UMINUS
+%precedence DM_NOT
+%precedence UMINUS
 
 %%
+
+programa:
+    expressao
+    ;
 
 expressao:
       expressao O_PLUS expressao
@@ -100,13 +128,12 @@ expressao:
     | IDENT
     ;
 
-
 %%
-
-int main(void) {
-    return yyparse();
-}
 
 void yyerror(const char *s) {
     fprintf(stderr, "Erro sintático: %s\n", s);
+}
+
+int main(void) {
+    return yyparse();
 }

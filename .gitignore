@@ -1,5 +1,13 @@
 .vscode/
-.src/lex.yy.c
-.src/parser.tab.c
-.src/parser.tab.h
-.src/teste_lexer
+
+build/
+parser_exe
+lexer_exe
+
+src/lex.yy.c
+src/parser.tab.c
+src/parser.tab.h
+src/teste_lexer
+
+src/test_ast
+src/test_main.csrc/test_ast
