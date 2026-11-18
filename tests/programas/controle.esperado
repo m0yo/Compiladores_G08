@@ -1,0 +1,25 @@
+Declarado: pares : int = 0
+Declarado: x : float = 1.500000
+Declarado: k : int = 0
+int pares = 1
+int k = 1
+int k = 2
+int pares = 2
+int k = 3
+int k = 4
+int pares = 3
+int k = 5
+int k = 6
+int pares = 4
+int k = 7
+int k = 8
+Declarado: d : int = 10
+int d = 11
+Declarado: r : int = 0
+int r = 20
+int r = 23
+Declarado: voltas : int = 0
+int voltas = 1
+int voltas = 2
+int voltas = 3
+Programa retornou: 26

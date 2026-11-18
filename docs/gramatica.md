@@ -3,7 +3,7 @@
 Este documento fornece uma referência clara da sintaxe da linguagem, alinhada com o analisador sintático (`src/parser.y`). Ele tem duas partes:
 
 * a **gramática implementada hoje** no `parser.y` (seção 3): declarações, atribuições, expressões e comandos de controle de fluxo. O detalhamento de tokens, precedência e erros está em [Parser](parser.md);
-* a **gramática alvo** (seção 4), que descreve a forma pretendida para a ligação com a AST (veja [AST e Avaliador](ast.md)).
+* a **gramática alvo** (seção 4), a referência de projeto que relaciona cada construção a um nó da AST (veja [AST e Avaliador](ast.md)).
 
 ---
 
@@ -134,10 +134,10 @@ Da menor para a maior precedência (as linhas de baixo prendem mais forte):
 
 ### Comportamento atual
 
-* O parser só **valida a sintaxe**: não há ações semânticas, então nada é calculado nem a AST é construída.
-* `main` chama `yyparse()` e devolve o resultado como código de saída: `0` se a entrada é aceita e `1` se há erro sintático.
-* Erros sintáticos são impressos em `stderr` como `Erro sintático: <mensagem>`, sem número de linha.
-* `break`, `continue` e `return` são aceitos em qualquer lugar; checar se estão dentro de laço ou função é trabalho da análise semântica.
+* Cada regra tem uma ação semântica que constrói o nó correspondente da AST; o `main` executa a árvore com `eval_ast`. Os detalhes estão em [Parser](parser.md).
+* `long` e `double` são aceitos, mas tratados como `int` e `float`, porque a tabela de símbolos só tem esses tipos.
+* Erros sintáticos são impressos em `stderr` como `Erro sintático na linha N: <mensagem>`, e o código de saída é `1`.
+* `break`, `continue` e `return` são aceitos em qualquer lugar pela gramática. Um `break`/`continue` fora de laço só dá erro na execução; `return` no nível do programa encerra a execução.
 * `L_STRING`, `COMMA`, `LBRACKET` e `RBRACKET` são produzidos pelo lexer, mas nenhuma regra os consome ainda.
 * `default` não existe como token no lexer (chega como `IDENT`), então o `switch` só aceita `case`.
 
@@ -145,7 +145,7 @@ Da menor para a maior precedência (as linhas de baixo prendem mais forte):
 
 ## 4. Gramática alvo
 
-> Esta seção descreve a forma pretendida para a ligação com a AST. O `parser.y` já reconhece tudo que está aqui (veja a seção 3), mas **ainda não constrói os nós da AST**. Em relação à versão anterior desta página, os nomes dos terminais foram alinhados aos que o lexer realmente produz (`L_INT`, `IDENT`, `O_PLUS`, `F_IF`, `DM_AND`, `R_EQ` etc.) e foram removidos `T_BOOL`, `TRUE_LIT` e `FALSE_LIT`, que não existem no lexer.
+> Esta seção é a referência de projeto da linguagem. O `parser.y` reconhece tudo que está aqui (veja a seção 3) e já constrói os nós da AST. Em relação à versão anterior desta página, os nomes dos terminais foram alinhados aos que o lexer realmente produz (`L_INT`, `IDENT`, `O_PLUS`, `F_IF`, `DM_AND`, `R_EQ` etc.) e foram removidos `T_BOOL`, `TRUE_LIT` e `FALSE_LIT`, que não existem no lexer.
 
 ### 4.1 Programa
 
@@ -218,7 +218,7 @@ Explicação das regras de `<comando>`:
 ```
 
 * **`<for-init>`:** inicialização do loop; pode ser vazia, uma declaração com atribuição ou uma atribuição a uma variável existente.
-* **`<for-cond>`:** condição de continuidade; se omitida o laço não tem condição de parada (o avaliador atual ainda não possui `break`).
+* **`<for-cond>`:** condição de continuidade; se omitida o laço só termina com `break` ou `return`.
 * **`<for-step>`:** passo executado a cada iteração; pode ser vazio ou uma atribuição.
 
 ### 4.5 Bloco
@@ -236,7 +236,7 @@ A gramática de `<expressao>` é a mesma da seção 3, com a mesma tabela de pre
 
 ### 4.7 Correspondência entre a gramática e a AST
 
-Cada regra da gramática alvo tem um construtor de nó pronto em `src/ast.c`:
+Cada regra da gramática tem um construtor de nó em `src/ast.c`, chamado pela ação semântica correspondente em `parser.y`:
 
 | Regra | Construtor |
 |---|---|
@@ -250,6 +250,9 @@ Cada regra da gramática alvo tem um construtor de nó pronto em `src/ast.c`:
 | `if` / `if-else` | `new_if_stmt_node` |
 | `while` | `new_while_stmt_node` |
 | `for` | `new_for_stmt_node` |
+| `do-while` | `new_do_while_node` |
+| `switch` / `case` | `new_switch_node` / `new_case_node` |
+| `break` / `continue` / `return` | `new_break_node` / `new_continue_node` / `new_return_node` |
 | `LBRACE ... RBRACE` | `new_block_node` |
 
 A tradução de token para código de operador (por exemplo `R_LE` para `OP_LEQ`) está em [AST e Avaliador](ast.md#operadores).
@@ -264,4 +267,4 @@ Para manter o interpretador focado no aprendizado dos conceitos fundamentais de 
 * Sem suporte a estruturas (*structs*).
 * Sem importação de bibliotecas externas ou uso de funções de cabeçalhos complexos do C padrão.
 
-Também ficam fora, por enquanto, funções, arrays, literais string e `default` no `switch`. Já `do-while`, `switch/case`, `break`, `continue` e `return` são reconhecidos pelo parser, mas ainda não têm nó na AST nem avaliação.
+Também ficam fora, por enquanto, funções, arrays, literais string e `default` no `switch`. Já `do-while`, `switch/case`, `break`, `continue` e `return` são reconhecidos pelo parser e executados pelo avaliador.

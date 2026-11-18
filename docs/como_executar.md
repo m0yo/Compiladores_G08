@@ -15,24 +15,30 @@ Todos os arquivos gerados ficam em `build/`; os executáveis ficam na raiz do pr
 | Comando | O que faz |
 |---|---|
 | `make` | Compila lexer e parser juntos e gera o executável `parser_exe` |
+| `make test` | Roda os testes unitários da AST e os programas de `tests/programas/` |
 | `make lexer_exe` | Compila só o lexer, em modo isolado, e gera o executável `lexer_exe` |
 | `make clean` | Remove `parser_exe`, `lexer_exe` e a pasta `build/` |
 
 A ordem importa: o Bison roda primeiro e gera `build/parser.tab.h`, que o Flex inclui ao gerar `build/lex.yy.c`. O `Makefile` já cuida disso.
 
-## Rodar o parser
+## Rodar o interpretador
 
-O `parser_exe` lê a entrada padrão e devolve como código de saída `0` se a sintaxe está correta ou `1` se há erro sintático:
+O `parser_exe` lê um programa (de um arquivo ou da entrada padrão), monta a AST e a executa. Com `-a`, imprime a árvore antes de executar:
 
 ```bash
-echo '10 + 5;' | ./parser_exe
-echo "saída: $?"      # 0 (aceita)
-
-echo '10 +;' | ./parser_exe
-echo "saída: $?"      # 1 (erro sintático)
+./parser_exe tests/teste_parser.txt
+./parser_exe -a tests/programas/controle.c    # mostra a AST e depois executa
+echo 'int x = 10; x = x * 2 + 1;' | ./parser_exe
 ```
 
-O parser aceita declarações, atribuições, expressões e comandos de controle (`if`, `while`, `do-while`, `for`, `switch`, `break`, `continue`, `return`) e não imprime resultado nenhum, só valida. Há um exemplo completo em `tests/teste_parser.txt` (`./parser_exe < tests/teste_parser.txt`). Veja [Parser](parser.md) e [Gramática](gramatica.md).
+A execução imprime o que o avaliador faz (`Declarado: x : int = 10`, `int x = 21`, `Resultado da expressão: ...`). Código de saída: `1` se houver erro sintático ou de execução, o valor do `return` se o programa executar um (`Programa retornou: N`), e `0` nos demais casos:
+
+```bash
+echo 'int x = ;' | ./parser_exe
+echo "saída: $?"      # 1 (Erro sintático na linha 1: syntax error)
+```
+
+O que a linguagem aceita está em [Parser](parser.md) e [Gramática](gramatica.md).
 
 ## Rodar o lexer isolado
 
@@ -43,19 +49,20 @@ make lexer_exe
 
 Para cada token é impresso o código, o lexema e a linha. Veja o formato e os detalhes em [Analisador Léxico](lexer.md).
 
-## Testes da AST, do avaliador e da tabela de símbolos
-
-O arquivo `src/test_main.c` testa a tabela de símbolos, as expressões, declarações, atribuições, `if/else`, `while`, `for` e `char`. Ainda não há um alvo no `Makefile` para ele; compile e rode manualmente:
+## Testes
 
 ```bash
-mkdir -p build
-gcc -Wall -o build/test_ast src/test_main.c src/ast.c src/tabela_simbolos.c -lm
-./build/test_ast
+make test
 ```
 
-Cada verificação imprime `[OK ]` ou `[FALHOU]`. Ao final, o programa mostra `TODOS OS TESTES PASSARAM (0 falha(s))` e devolve código de saída `0`; se algum teste falhar, mostra `HOUVE FALHAS` e devolve `1`. A saída também inclui trechos impressos pelo avaliador (`Declarado: ...`, `int x = ...`) e a árvore do laço `for` desenhada por `print_ast`.
+O alvo roda duas coisas:
 
-> O parser ainda não é testado automaticamente: a pasta `tests/` só tem a entrada do lexer.
+1. **Testes unitários** (`src/test_main.c`, compilado em `build/test_ast`): tabela de símbolos, expressões, declarações, atribuições, `if/else`, `while`, `for` e `char`, montando a AST à mão.
+2. **Testes de ponta a ponta** (`tests/programas/*.c`): cada programa é executado pelo `parser_exe` e a saída (`stdout` e `stderr`) é comparada com o arquivo `.esperado` de mesmo nome. Para adicionar um caso, crie `nome.c`, confira a saída e salve-a com `./parser_exe tests/programas/nome.c > tests/programas/nome.esperado 2>&1`.
+
+Para rodar só os testes unitários e ver a saída completa: `make build/test_ast && ./build/test_ast`.
+
+Cada verificação imprime `[OK ]` ou `[FALHOU]`. Ao final, o programa mostra `TODOS OS TESTES PASSARAM (0 falha(s))` e devolve código de saída `0`; se algum teste falhar, mostra `HOUVE FALHAS` e devolve `1`. A saída também inclui trechos impressos pelo avaliador (`Declarado: ...`, `int x = ...`) e a árvore do laço `for` desenhada por `print_ast`.
 
 ## Visualizar a documentação
 

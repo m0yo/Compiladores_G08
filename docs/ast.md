@@ -2,7 +2,7 @@
 
 Esta página documenta a Árvore Sintática Abstrata (AST) e o avaliador que a executa. O código está em `src/ast.h` (interface) e `src/ast.c` (implementação).
 
-> **Estado atual:** a AST e o avaliador funcionam e são testados por `src/test_main.c`, mas **o parser ainda não constrói a árvore**: as regras de `src/parser.y` não têm ações semânticas. Hoje a árvore só é montada manualmente, nos testes.
+> **Estado atual:** o parser (`src/parser.y`) constrói a AST a partir do código-fonte e o `main` a executa com `eval_ast`. A AST também é testada isoladamente por `src/test_main.c`.
 
 ## Estrutura de um nó
 
@@ -28,6 +28,11 @@ Os campos das expressões e dos comandos são:
 | `AST_IF` | `if_stmt.cond`, `then_branch`, `else_branch` (`NULL` se não há `else`) | `new_if_stmt_node(cond, then, else)` |
 | `AST_WHILE` | `while_stmt.cond`, `body` | `new_while_stmt_node(cond, body)` |
 | `AST_FOR` | `for_stmt.init`, `cond`, `step`, `body` | `new_for_stmt_node(init, cond, step, body)` |
+| `AST_DO_WHILE` | `while_stmt.body`, `cond` (mesmos campos do `while`) | `new_do_while_node(body, cond)` |
+| `AST_SWITCH` | `switch_stmt.expr`, `cases` (lista de `AST_CASE` via `next`) | `new_switch_node(expr, cases)` |
+| `AST_CASE` | `case_stmt.value` (`int`), `stmts` | `new_case_node(value, stmts)` |
+| `AST_BREAK` / `AST_CONTINUE` | — | `new_break_node()` / `new_continue_node()` |
+| `AST_RETURN` | `return_stmt.expr` (`NULL` em `return;`) | `new_return_node(expr)` |
 | `AST_BLOCK` | `block.stmts` (cabeça da lista de comandos) | `new_block_node(stmts)` |
 
 Os construtores alocam o nó com `malloc` e **copiam os nomes com `strdup`**. Se a alocação do nó falha, o programa imprime um erro e termina.
@@ -52,7 +57,7 @@ O campo `op` guarda o próprio caractere para `+ - * / < > ! & |` e uma constant
 | `R_LE` | `OP_LEQ` | `<=` |
 | `R_GE` | `OP_GEQ` | `>=` |
 
-> Os códigos `OP_EQ`, `OP_NEQ`, `OP_LEQ` e `OP_GEQ` (256 a 259) **não são** os códigos de token do Bison, e os dois conjuntos se sobrepõem numericamente (por exemplo, `OP_LEQ` vale 258, o mesmo número de `T_INT`). Nas ações semânticas do parser é preciso traduzir explicitamente cada token para o seu operador. O módulo `%` não é implementado: o avaliador responde `Erro: Operador binário desconhecido`.
+> Os códigos `OP_EQ`, `OP_NEQ`, `OP_LEQ` e `OP_GEQ` (256 a 259) **não são** os códigos de token do Bison, e os dois conjuntos se sobrepõem numericamente (por exemplo, `OP_LEQ` vale 258, o mesmo número de `T_INT`). Por isso as ações semânticas do parser traduzem explicitamente cada token para o seu operador. O módulo `%` não é implementado: o avaliador responde `Erro: Operador binário desconhecido`.
 
 ## Avaliador (`eval_ast`)
 
@@ -80,7 +85,21 @@ Listas de comandos (`next`, corpo de `while`/`for`, ramos do `if` e `AST_BLOCK`)
 | `if` | Executa o ramo `then` se a condição é diferente de zero, senão o `else` (se houver) |
 | `while` | Repete o corpo enquanto a condição é diferente de zero |
 | `for` | Executa `init` uma vez; a cada volta testa `cond` (se existir), executa o corpo e depois `step` |
+| `do-while` | Executa o corpo e depois testa a condição; o corpo roda pelo menos uma vez |
+| `switch` | Avalia a expressão, procura o primeiro `case` com o mesmo valor e executa a partir dele, **seguindo para os `case` seguintes** (*fall-through*) até um `break`. Sem `case` correspondente, nada é executado (não há `default`) |
+| `break` | Sai do laço ou `switch` mais interno |
+| `continue` | Pula para a próxima volta do laço mais interno (no `for`, o `step` ainda é executado) |
+| `return` | Interrompe a execução e guarda o valor em `valor_retorno` |
 | Bloco | Executa a lista de comandos; **não cria um novo escopo** |
+
+### Controle de fluxo (`break`, `continue`, `return`)
+
+Os desvios usam uma variável global, `controle_fluxo` (`CTRL_NORMAL`, `CTRL_BREAK`, `CTRL_CONTINUE` ou `CTRL_RETURN`):
+
+* `AST_BREAK`, `AST_CONTINUE` e `AST_RETURN` só mudam esse estado (o `return` também guarda o valor em `valor_retorno`);
+* a função que executa listas de comandos para assim que o estado deixa de ser `CTRL_NORMAL`, então o resto do bloco é pulado e o sinal "sobe" pela árvore;
+* os laços consomem `break` (saem) e `continue` (seguem para a próxima volta); o `switch` consome só o `break`, deixando o `continue` chegar ao laço de fora;
+* `return` não é consumido por ninguém e encerra o programa. O `main` do parser imprime `Programa retornou: N` e usa `N` como código de saída. Se sobrar um `break` ou `continue` no fim, ele estava fora de laço, e o `main` imprime um erro.
 
 ### Saída impressa
 
@@ -141,10 +160,10 @@ FOR
 
 * `free_ast` libera recursivamente a árvore inteira, incluindo os nós ligados por `next` e os nomes copiados com `strdup`. Depois de liberar um nó, ele não deve mais ser usado.
 
-## Integração com o parser (a fazer)
+## Integração com o parser
 
-Para ligar o parser à AST, cada regra de `parser.y` deve chamar o construtor correspondente (veja a tabela em [Gramática](gramatica.md#47-correspondencia-entre-a-gramatica-e-a-ast)). Um cuidado de memória: o lexer entrega `IDENT` e `L_STRING` em `sval` alocado com `malloc`, e `new_id_node`, `new_assign_node` e `new_decl_node` **duplicam** o nome. Portanto o parser deve chamar `free` no `sval` depois de criar o nó, senão há vazamento.
+Cada regra de `parser.y` chama o construtor correspondente (veja a tabela em [Gramática](gramatica.md#47-correspondencia-entre-a-gramatica-e-a-ast) e em [Parser](parser.md)). A raiz é a lista de comandos do programa, que o `main` envolve num `AST_BLOCK` antes de chamar `eval_ast` e `free_ast`. Cuidado de memória: o lexer entrega `IDENT` em `sval` alocado com `malloc`, e `new_id_node`, `new_assign_node` e `new_decl_node` **duplicam** o nome; por isso o parser chama `free` no `sval` logo após criar o nó.
 
 ## Testes
 
-`src/test_main.c` cobre a tabela de símbolos, expressões (precedência, promoção `int`/`float`, divisão inteira, relacionais e unários), declaração e atribuição, conversão `float` → `int` na atribuição, `if/else`, `while`, `for` e `char`. Veja [Como executar](como_executar.md) para rodá-lo.
+`src/test_main.c` cobre a tabela de símbolos, expressões (precedência, promoção `int`/`float`, divisão inteira, relacionais e unários), declaração e atribuição, conversão `float` → `int` na atribuição, `if/else`, `while`, `for` e `char`. Os programas em `tests/programas/` testam o pipeline completo (lexer → parser → AST → `eval_ast`), inclusive `break`, `continue`, `do-while`, `switch` com *fall-through* e `return`. Tudo roda com `make test`; veja [Como executar](como_executar.md).
