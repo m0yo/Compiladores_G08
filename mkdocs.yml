@@ -33,6 +33,7 @@ nav:
     - Analisador Léxico: lexer.md
     - Expressões Regulares: expressoesRegularesFlex.md
   - Parser:
+    - Analisador Sintático: parser.md
     - Gramática: gramatica.md
   - Interpretador:
     - AST e Avaliador: ast.md

@@ -1,6 +1,6 @@
 # Compiladores_G08
 
-> ⚠️ **Projeto em desenvolvimento.** O lexer está funcional e integrado ao parser, que por enquanto reconhece apenas **uma expressão** (sem comandos). A AST, a tabela de símbolos e o avaliador já existem em `src/`, mas ainda **não estão conectados ao parser**: a execução de programas completos está por vir. Este README serve como guia de orientação para quem for contribuir ou acompanhar o projeto.
+> ⚠️ **Projeto em desenvolvimento.** O lexer está funcional e integrado ao parser, que reconhece declarações, expressões e comandos de controle (`if`, `while`, `do-while`, `for`, `switch`, `break`, `continue`, `return`). A AST, a tabela de símbolos e o avaliador já existem em `src/`, mas ainda **não estão conectados ao parser**: a execução de programas completos está por vir. Este README serve como guia de orientação para quem for contribuir ou acompanhar o projeto.
 
 Documentação publicada: <https://m0yo.github.io/Compiladores_G08/>
 
@@ -75,8 +75,8 @@ Pré-requisitos: `gcc`, `make`, [Flex](https://github.com/westes/flex) e Bison 3
 # compila lexer + parser juntos (gera build/ e o executável parser_exe)
 make
 
-# roda o parser sobre uma expressão (código de saída 0 = aceita, 1 = erro sintático)
-echo '10 + 5' | ./parser_exe
+# roda o parser sobre um comando (código de saída 0 = aceita, 1 = erro sintático)
+echo '10 + 5;' | ./parser_exe
 echo "saída: $?"
 
 # compila só o lexer, imprimindo os tokens reconhecidos

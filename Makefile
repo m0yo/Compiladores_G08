@@ -13,7 +13,7 @@ BISON_H = $(BUILD_DIR)/parser.tab.h
 FLEX_C  = $(BUILD_DIR)/lex.yy.c
 
 CC     = gcc
-CFLAGS = -I$(BUILD_DIR)
+CFLAGS = -I$(BUILD_DIR) -Isrc
 
 # Compila lexer + parser juntos
 all: $(EXEC)

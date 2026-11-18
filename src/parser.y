@@ -3,7 +3,7 @@
  * Curso de Engenharia de Software
  * Universidade de Brasília (UnB)
  *
- * Parser inicial do projeto.
+ * Parser inicial do projeto: declarações, expressões e comandos.
  ******************************************************/
 
 %{
@@ -85,7 +85,12 @@ void yyerror(const char *s);
 %token SEMICOLON
 %token COMMA
 
-/* Precedência */
+/* Precedência (da menor para a maior) */
+
+/* Resolve o "else pendente": o else casa com o if mais próximo */
+%precedence SEM_ELSE
+%precedence F_ELSE
+
 %left DM_OR
 %left DM_AND
 %left R_EQ R_NE
@@ -98,7 +103,101 @@ void yyerror(const char *s);
 %%
 
 programa:
-    expressao
+      /* vazio */
+    | programa comando
+    ;
+
+comando:
+      declaracao
+    | atribuicao SEMICOLON
+    | expressao SEMICOLON
+    | bloco
+    | comando_if
+    | comando_while
+    | comando_do_while
+    | comando_for
+    | comando_switch
+    | F_BREAK SEMICOLON
+    | F_CONTINUE SEMICOLON
+    | F_RETURN SEMICOLON
+    | F_RETURN expressao SEMICOLON
+    ;
+
+declaracao:
+      tipo IDENT SEMICOLON
+    | tipo IDENT O_ASSIGN expressao SEMICOLON
+    ;
+
+atribuicao:
+      IDENT O_ASSIGN expressao
+    ;
+
+tipo:
+      T_INT
+    | T_FLOAT
+    | T_CHAR
+    | T_DOUBLE
+    | T_LONG
+    ;
+
+bloco:
+      LBRACE lista_comandos RBRACE
+    ;
+
+lista_comandos:
+      /* vazio */
+    | lista_comandos comando
+    ;
+
+comando_if:
+      F_IF LPAREN expressao RPAREN comando %prec SEM_ELSE
+    | F_IF LPAREN expressao RPAREN comando F_ELSE comando
+    ;
+
+comando_while:
+      F_WHILE LPAREN expressao RPAREN comando
+    ;
+
+comando_do_while:
+      F_DO comando F_WHILE LPAREN expressao RPAREN SEMICOLON
+    ;
+
+comando_for:
+      F_FOR LPAREN for_init SEMICOLON for_cond SEMICOLON for_passo RPAREN comando
+    ;
+
+for_init:
+      /* vazio */
+    | tipo IDENT O_ASSIGN expressao
+    | atribuicao
+    ;
+
+for_cond:
+      /* vazio */
+    | expressao
+    ;
+
+for_passo:
+      /* vazio */
+    | atribuicao
+    ;
+
+comando_switch:
+      F_SWITCH LPAREN expressao RPAREN LBRACE lista_casos RBRACE
+    ;
+
+lista_casos:
+      /* vazio */
+    | lista_casos caso
+    ;
+
+caso:
+      F_CASE rotulo COLON lista_comandos
+    ;
+
+rotulo:
+      L_INT
+    | L_CHAR
     ;
 
 expressao:
