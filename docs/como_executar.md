@@ -25,14 +25,14 @@ A ordem importa: o Bison roda primeiro e gera `build/parser.tab.h`, que o Flex i
 O `parser_exe` lê a entrada padrão e devolve como código de saída `0` se a sintaxe está correta ou `1` se há erro sintático:
 
 ```bash
-echo '10 + 5' | ./parser_exe
+echo '10 + 5;' | ./parser_exe
 echo "saída: $?"      # 0 (aceita)
 
-echo '10 +' | ./parser_exe
+echo '10 +;' | ./parser_exe
 echo "saída: $?"      # 1 (erro sintático)
 ```
 
-Por enquanto o parser aceita apenas **uma expressão** e não imprime resultado nenhum: veja [Gramática](gramatica.md).
+O parser aceita declarações, atribuições, expressões e comandos de controle (`if`, `while`, `do-while`, `for`, `switch`, `break`, `continue`, `return`) e não imprime resultado nenhum, só valida. Há um exemplo completo em `tests/teste_parser.txt` (`./parser_exe < tests/teste_parser.txt`). Veja [Parser](parser.md) e [Gramática](gramatica.md).
 
 ## Rodar o lexer isolado
 
