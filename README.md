@@ -1,6 +1,6 @@
 # Compiladores_G08
 
-> ⚠️ **Projeto em desenvolvimento.** O lexer está funcional e integrado ao parser, que por enquanto reconhece apenas **uma expressão** (sem comandos). A AST, a tabela de símbolos e o avaliador já existem em `src/`, mas ainda **não estão conectados ao parser**: a execução de programas completos está por vir. Este README serve como guia de orientação para quem for contribuir ou acompanhar o projeto.
+> ⚠️ **Projeto em desenvolvimento.** O pipeline lexer → parser → AST → avaliador está conectado: o interpretador executa programas com declarações, atribuições, expressões e comandos de controle (`if`, `while`, `do-while`, `for`, `switch`, `break`, `continue`, `return`). Ainda faltam funções, `printf`, análise semântica separada e outros recursos (veja o checklist). Este README serve como guia de orientação para quem for contribuir ou acompanhar o projeto.
 
 Documentação publicada: <https://m0yo.github.io/Compiladores_G08/>
 
@@ -13,13 +13,14 @@ Este projeto é um **interpretador para a linguagem C, implementado na própria 
 ## Estado atual do projeto
 
 - ✅ **Lexer (análise léxica)** — implementado em Flex (`src/lexer.l`), reconhece palavras-chave, operadores, literais (`int`, `float`, `char` e string), identificadores, delimitadores e comentários (`//` e `/* */`), retornando os tokens e os valores semânticos (`yylval`) e contando as linhas para mensagens de erro
-- 🚧 **Parser (análise sintática, com Bison)** — `src/parser.y` está integrado ao lexer e reconhece **uma única expressão** (aritmética, relacional, lógica, parênteses, literais e identificadores); faltam declarações, atribuições e comandos, e ainda não há ações semânticas
-- 🚧 **Árvore Sintática Abstrata (AST)** — `src/ast.c` e `src/ast.h`: nós, construtores, impressão (`print_ast`) e liberação (`free_ast`) implementados e testados; ainda não é construída pelo parser
+- ✅ **Parser (análise sintática, com Bison)** — `src/parser.y` reconhece declarações, atribuições, expressões e os comandos `if`/`else`, `while`, `do-while`, `for`, `switch`/`case`, `break`, `continue` e `return`, e constrói a AST com ações semânticas
+- ✅ **Árvore Sintática Abstrata (AST)** — `src/ast.c` e `src/ast.h`: nós para todos os comandos do parser, construtores, impressão (`print_ast`) e liberação (`free_ast`)
 - 🚧 **Tabela de símbolos** — `src/tabela_simbolos.c` e `.h`: tabela hash com os tipos `int`, `float` e `char`, escopo único (global)
-- 🚧 **Avaliador (`eval_ast`)** — executa expressões, declarações, atribuições, `if`, `while`, `for` e blocos sobre uma AST; validado por `src/test_main.c`, mas ainda não é chamado a partir do parser
-- ⬜ Ações semânticas no parser (construir a AST a partir do código-fonte)
+- 🚧 **Avaliador (`eval_ast`)** — executa todos os comandos acima, chamado pelo `main` do parser; `long` e `double` são tratados como `int` e `float`
+- ✅ Testes automatizados com `make test` (unitários da AST + programas de ponta a ponta em `tests/programas/`)
+- ⬜ Saída de dados na linguagem (`printf`) e `int main() { ... }`
 - ⬜ Análise semântica separada da execução (verificação de tipos e escopos; hoje os erros são detectados em tempo de execução)
-- ⬜ Suporte a `long`/`double`, `do-while`, `switch`, `break`/`continue`/`return` e funções (os tokens já existem no lexer, mas nada os consome ainda)
+- ⬜ Tipos próprios para `long`/`double`, `default` no `switch` e funções
 - ⬜ Suporte completo a tipos, ponteiros, structs, etc.
 
 > Atualize este checklist conforme o projeto avança — é a forma mais rápida de qualquer pessoa entender "onde estamos" sem ler código.
@@ -33,7 +34,7 @@ código-fonte (.c)
    [ Lexer ]  → quebra o texto em tokens (Flex) -> pronto
       │
       ▼
-   [ Parser ] → valida a sintaxe e monta a AST (Bison) -> reconhece expressões; ainda não monta a AST
+   [ Parser ] → valida a sintaxe e monta a AST (Bison) -> pronto para o subconjunto atual
       │
       ▼
 [ AST + Tabela de símbolos ] → estruturas do programa -> implementadas (src/ast.*, src/tabela_simbolos.*)
@@ -42,7 +43,7 @@ código-fonte (.c)
 [ Análise semântica ] → valida tipos, escopos, declarações -> não iniciada
       │
       ▼
- [ Interpretador ] → percorre a AST e executa o programa (eval_ast) -> pronto para o subconjunto atual, sem ligação com o parser
+ [ Interpretador ] → percorre a AST e executa o programa (eval_ast) -> pronto para o subconjunto atual
 ```
 
 O lexer e o parser compartilham os mesmos tokens e tipos de valor semântico (`yylval`): eles são declarados em `src/parser.y` (`%token` e `%union`) e o Bison os exporta no `parser.tab.h`, que o `lexer.l` inclui.
@@ -60,7 +61,10 @@ O lexer e o parser compartilham os mesmos tokens e tipos de valor semântico (`y
 │   ├── ast.h / ast.c        # AST, avaliador (eval_ast), print_ast e free_ast
 │   ├── tabela_simbolos.h/.c # tabela de símbolos (hash table)
 │   └── test_main.c          # testes da AST, do avaliador e da tabela de símbolos
-├── tests/                   # arquivos de entrada para testar o lexer
+├── tests/
+│   ├── teste_lexer.txt      # entrada para testar o lexer
+│   ├── teste_parser.txt     # programa com todos os comandos do parser
+│   └── programas/           # programas .c + saída .esperado (testes de ponta a ponta)
 ├── Makefile                 # compila lexer + parser (arquivos gerados ficam em build/)
 ├── mkdocs.yml               # configuração do site de documentação
 ├── LICENSE
@@ -75,18 +79,16 @@ Pré-requisitos: `gcc`, `make`, [Flex](https://github.com/westes/flex) e Bison 3
 # compila lexer + parser juntos (gera build/ e o executável parser_exe)
 make
 
-# roda o parser sobre uma expressão (código de saída 0 = aceita, 1 = erro sintático)
-echo '10 + 5' | ./parser_exe
-echo "saída: $?"
+# executa um programa (use -a para ver a AST antes da execução)
+./parser_exe tests/teste_parser.txt
+echo 'int x = 10; x = x * 2 + 1;' | ./parser_exe
 
 # compila só o lexer, imprimindo os tokens reconhecidos
 make lexer_exe
 ./lexer_exe < tests/teste_lexer.txt
 
-# testes da AST, do avaliador e da tabela de símbolos (ainda não há alvo no Makefile)
-mkdir -p build
-gcc -Wall -o build/test_ast src/test_main.c src/ast.c src/tabela_simbolos.c -lm
-./build/test_ast
+# testes unitários da AST + programas de tests/programas/
+make test
 
 # remove os arquivos gerados
 make clean
@@ -104,7 +106,7 @@ Token: 299 | Lexema: ';' | Linha: 1
 
 Os códigos numéricos são atribuídos pelo Bison conforme a ordem dos `%token` em `src/parser.y`, então mudam quando tokens são adicionados ou removidos.
 
-O teste da AST termina com `TODOS OS TESTES PASSARAM (0 falha(s))` e código de saída 0 quando tudo está correto.
+O `make test` imprime `[OK ]` para cada teste e termina com código de saída diferente de 0 se algum falhar.
 
 ## Documentação
 
@@ -123,14 +125,14 @@ Isso sobe um servidor local (geralmente em `http://127.0.0.1:8000`) com o site d
 - [x] Integrar o lexer ao Bison (tokens e `yylval` compartilhados)
 - [x] Implementar a tabela de símbolos
 - [x] Definir a AST e o avaliador `eval_ast` (expressões, declaração, atribuição, `if`, `while`, `for`)
-- [ ] Implementar o parser (declarações e comandos)
-- [ ] Conectar o parser à AST (ações semânticas que chamam os construtores `new_*_node`)
-- [ ] Executar programas completos (parser → AST → `eval_ast`)
+- [x] Implementar o parser (declarações e comandos)
+- [x] Conectar o parser à AST (ações semânticas que chamam os construtores `new_*_node`)
+- [x] Executar programas completos (parser → AST → `eval_ast`)
 - [ ] Implementar análise semântica (tipos, escopos)
-- [ ] Suporte a estruturas de controle (`if`, `while` e `for` já são avaliados na AST; faltam o parser, `do-while` e `switch`)
+- [x] Suporte a estruturas de controle (`if`, `while`, `do-while`, `for`, `switch`, `break`, `continue`, `return`; falta `default`)
 - [ ] Suporte a funções
 - [ ] Suporte a tipos compostos (structs, arrays, ponteiros)
-- [ ] Testes automatizados cobrindo cada etapa do pipeline (hoje existem testes da AST e da tabela de símbolos em `src/test_main.c`; faltam parser e pipeline completo)
+- [ ] Testes automatizados cobrindo cada etapa do pipeline (`make test` já cobre a AST e o pipeline completo; falta ampliar os casos, inclusive de erro)
 
 ## Como contribuir
 

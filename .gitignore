@@ -10,4 +10,3 @@ src/parser.tab.h
 src/teste_lexer
 
 src/test_ast
-src/test_main.csrc/test_ast

@@ -13,13 +13,16 @@ BISON_H = $(BUILD_DIR)/parser.tab.h
 FLEX_C  = $(BUILD_DIR)/lex.yy.c
 
 CC     = gcc
-CFLAGS = -I$(BUILD_DIR)
+CFLAGS = -Wall -I$(BUILD_DIR) -Isrc
+
+# Módulos em C (AST, avaliador e tabela de símbolos)
+C_SRCS = src/ast.c src/tabela_simbolos.c
 
 # Compila lexer + parser juntos
 all: $(EXEC)
 
-$(EXEC): $(BISON_C) $(FLEX_C)
-	$(CC) $(CFLAGS) -o $@ $(BISON_C) $(FLEX_C)
+$(EXEC): $(BISON_C) $(FLEX_C) $(C_SRCS) src/ast.h src/tabela_simbolos.h
+	$(CC) $(CFLAGS) -o $@ $(BISON_C) $(FLEX_C) $(C_SRCS) -lm
 
 # Lexer isolado: imprime os tokens (usa o parser.tab.h só para os códigos dos tokens)
 $(LEXER_EXEC): $(BISON_H) $(FLEX_C)
@@ -36,7 +39,21 @@ $(BISON_C) $(BISON_H): $(BISON_FILE) | $(BUILD_DIR)
 $(FLEX_C): $(FLEX_FILE) $(BISON_H) | $(BUILD_DIR)
 	flex -o $(FLEX_C) $(FLEX_FILE)
 
+# Testes: unitários da AST + programas de exemplo (saída comparada com .esperado)
+TEST_AST = $(BUILD_DIR)/test_ast
+
+$(TEST_AST): src/test_main.c $(C_SRCS) src/ast.h src/tabela_simbolos.h | $(BUILD_DIR)
+	$(CC) $(CFLAGS) -o $@ src/test_main.c $(C_SRCS) -lm
+
+test: $(EXEC) $(TEST_AST)
+	@./$(TEST_AST) > /dev/null && echo "[OK ] testes unitários da AST" || { echo "[FALHOU] testes unitários da AST"; exit 1; }
+	@falhas=0; for f in tests/programas/*.c; do \
+		esp="$${f%.c}.esperado"; \
+		if ./$(EXEC) "$$f" 2>&1 | diff -u "$$esp" - > /dev/null; then echo "[OK ] $$f"; \
+		else echo "[FALHOU] $$f"; ./$(EXEC) "$$f" 2>&1 | diff -u "$$esp" -; falhas=1; fi; \
+	done; exit $$falhas
+
 clean:
 	rm -rf $(EXEC) $(LEXER_EXEC) $(BUILD_DIR)
 
-.PHONY: all clean
+.PHONY: all clean test

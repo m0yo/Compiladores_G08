@@ -2,8 +2,8 @@
 
 Este documento fornece uma referência clara da sintaxe da linguagem, alinhada com o analisador sintático (`src/parser.y`). Ele tem duas partes:
 
-* a **gramática implementada hoje** no `parser.y` (seção 3), que reconhece apenas uma expressão;
-* a **gramática alvo** (seção 4), com declarações, atribuições e comandos, que será implementada nas próximas etapas. Ela já corresponde aos nós da AST (veja [AST e Avaliador](ast.md)).
+* a **gramática implementada hoje** no `parser.y` (seção 3): declarações, atribuições, expressões e comandos de controle de fluxo. O detalhamento de tokens, precedência e erros está em [Parser](parser.md);
+* a **gramática alvo** (seção 4), a referência de projeto que relaciona cada construção a um nó da AST (veja [AST e Avaliador](ast.md)).
 
 ---
 
@@ -47,10 +47,52 @@ Os tokens são declarados em `parser.y` e produzidos pelo analisador léxico (ve
 
 ## 3. Gramática implementada (`parser.y`)
 
-O símbolo inicial é `programa` e, por enquanto, um programa é **uma única expressão**:
+O símbolo inicial é `programa`: uma sequência, possivelmente vazia, de comandos.
 
 ```bnf
-<programa>  ::= <expressao>
+<programa>       ::= /* vazio */
+                   | <programa> <comando>
+
+<comando>        ::= <declaracao>
+                   | <atribuicao> SEMICOLON
+                   | <expressao> SEMICOLON
+                   | <bloco>
+                   | <comando-if>
+                   | <comando-while>
+                   | <comando-do-while>
+                   | <comando-for>
+                   | <comando-switch>
+                   | F_BREAK SEMICOLON
+                   | F_CONTINUE SEMICOLON
+                   | F_RETURN SEMICOLON
+                   | F_RETURN <expressao> SEMICOLON
+
+<declaracao>     ::= <tipo> IDENT SEMICOLON
+                   | <tipo> IDENT O_ASSIGN <expressao> SEMICOLON
+
+<atribuicao>     ::= IDENT O_ASSIGN <expressao>
+
+<tipo>           ::= T_INT | T_FLOAT | T_CHAR | T_DOUBLE | T_LONG
+
+<bloco>          ::= LBRACE <lista-comandos> RBRACE
+<lista-comandos> ::= /* vazio */
+                   | <lista-comandos> <comando>
+
+<comando-if>       ::= F_IF LPAREN <expressao> RPAREN <comando>          (* %prec SEM_ELSE *)
+                     | F_IF LPAREN <expressao> RPAREN <comando> F_ELSE <comando>
+<comando-while>    ::= F_WHILE LPAREN <expressao> RPAREN <comando>
+<comando-do-while> ::= F_DO <comando> F_WHILE LPAREN <expressao> RPAREN SEMICOLON
+<comando-for>      ::= F_FOR LPAREN <for-init> SEMICOLON <for-cond> SEMICOLON <for-passo> RPAREN <comando>
+
+<for-init>  ::= /* vazio */ | <tipo> IDENT O_ASSIGN <expressao> | <atribuicao>
+<for-cond>  ::= /* vazio */ | <expressao>
+<for-passo> ::= /* vazio */ | <atribuicao>
+
+<comando-switch> ::= F_SWITCH LPAREN <expressao> RPAREN LBRACE <lista-casos> RBRACE
+<lista-casos>    ::= /* vazio */
+                   | <lista-casos> <caso>
+<caso>           ::= F_CASE <rotulo> COLON <lista-comandos>
+<rotulo>         ::= L_INT | L_CHAR
 
 <expressao> ::= <expressao> O_PLUS <expressao>
               | <expressao> O_MINUS <expressao>
@@ -88,22 +130,22 @@ Da menor para a maior precedência (as linhas de baixo prendem mais forte):
 | 7 | — (`%precedence`) | `DM_NOT` |
 | 8 | — (`%precedence`) | `UMINUS` (menos unário) |
 
-Exemplos: `1 + 2 * 3` agrupa como `1 + (2 * 3)`; `-2 * 3` agrupa como `(-2) * 3`; `!a && b` agrupa como `(!a) && b`.
+`SEM_ELSE` e `F_ELSE` ficam abaixo de todos os operadores e resolvem o *else pendente* (o `else` casa com o `if` mais próximo). Exemplos: `1 + 2 * 3` agrupa como `1 + (2 * 3)`; `-2 * 3` agrupa como `(-2) * 3`; `!a && b` agrupa como `(!a) && b`.
 
 ### Comportamento atual
 
-* O parser só **valida a sintaxe**: não há ações semânticas, então nada é calculado nem a AST é construída.
-* `main` chama `yyparse()` e devolve o resultado como código de saída: `0` se a entrada é aceita e `1` se há erro sintático.
-* Erros sintáticos são impressos em `stderr` como `Erro sintático: <mensagem>`, sem número de linha.
-* Como `<programa>` é só uma expressão, entradas com `;`, atribuição (`=`), declaração de variável, `if`, `while`, `for` ou chaves resultam em erro sintático.
-* Literais string (`L_STRING`) são emitidos pelo lexer mas não são aceitos pela gramática.
-* Todos os tokens que não aparecem nas regras acima (tipos, palavras-chave de controle, `O_ASSIGN`, chaves, colchetes, `COLON`, `SEMICOLON`, `COMMA` e `L_STRING`) são declarados e produzidos pelo lexer, mas nenhuma regra os consome ainda.
+* Cada regra tem uma ação semântica que constrói o nó correspondente da AST; o `main` executa a árvore com `eval_ast`. Os detalhes estão em [Parser](parser.md).
+* `long` e `double` são aceitos, mas tratados como `int` e `float`, porque a tabela de símbolos só tem esses tipos.
+* Erros sintáticos são impressos em `stderr` como `Erro sintático na linha N: <mensagem>`, e o código de saída é `1`.
+* `break`, `continue` e `return` são aceitos em qualquer lugar pela gramática. Um `break`/`continue` fora de laço só dá erro na execução; `return` no nível do programa encerra a execução.
+* `L_STRING`, `COMMA`, `LBRACKET` e `RBRACKET` são produzidos pelo lexer, mas nenhuma regra os consome ainda.
+* `default` não existe como token no lexer (chega como `IDENT`), então o `switch` só aceita `case`.
 
 ---
 
 ## 4. Gramática alvo
 
-> Esta seção descreve o que o parser deverá reconhecer e **ainda não está implementado em `parser.y`**. Em relação à versão anterior desta página, os nomes dos terminais foram alinhados aos que o lexer realmente produz (`L_INT`, `IDENT`, `O_PLUS`, `F_IF`, `DM_AND`, `R_EQ` etc.) e foram removidos `T_BOOL`, `TRUE_LIT` e `FALSE_LIT`, que não existem no lexer.
+> Esta seção é a referência de projeto da linguagem. O `parser.y` reconhece tudo que está aqui (veja a seção 3) e já constrói os nós da AST. Em relação à versão anterior desta página, os nomes dos terminais foram alinhados aos que o lexer realmente produz (`L_INT`, `IDENT`, `O_PLUS`, `F_IF`, `DM_AND`, `R_EQ` etc.) e foram removidos `T_BOOL`, `TRUE_LIT` e `FALSE_LIT`, que não existem no lexer.
 
 ### 4.1 Programa
 
@@ -176,7 +218,7 @@ Explicação das regras de `<comando>`:
 ```
 
 * **`<for-init>`:** inicialização do loop; pode ser vazia, uma declaração com atribuição ou uma atribuição a uma variável existente.
-* **`<for-cond>`:** condição de continuidade; se omitida o laço não tem condição de parada (o avaliador atual ainda não possui `break`).
+* **`<for-cond>`:** condição de continuidade; se omitida o laço só termina com `break` ou `return`.
 * **`<for-step>`:** passo executado a cada iteração; pode ser vazio ou uma atribuição.
 
 ### 4.5 Bloco
@@ -194,7 +236,7 @@ A gramática de `<expressao>` é a mesma da seção 3, com a mesma tabela de pre
 
 ### 4.7 Correspondência entre a gramática e a AST
 
-Cada regra da gramática alvo tem um construtor de nó pronto em `src/ast.c`:
+Cada regra da gramática tem um construtor de nó em `src/ast.c`, chamado pela ação semântica correspondente em `parser.y`:
 
 | Regra | Construtor |
 |---|---|
@@ -208,6 +250,9 @@ Cada regra da gramática alvo tem um construtor de nó pronto em `src/ast.c`:
 | `if` / `if-else` | `new_if_stmt_node` |
 | `while` | `new_while_stmt_node` |
 | `for` | `new_for_stmt_node` |
+| `do-while` | `new_do_while_node` |
+| `switch` / `case` | `new_switch_node` / `new_case_node` |
+| `break` / `continue` / `return` | `new_break_node` / `new_continue_node` / `new_return_node` |
 | `LBRACE ... RBRACE` | `new_block_node` |
 
 A tradução de token para código de operador (por exemplo `R_LE` para `OP_LEQ`) está em [AST e Avaliador](ast.md#operadores).
@@ -222,4 +267,4 @@ Para manter o interpretador focado no aprendizado dos conceitos fundamentais de 
 * Sem suporte a estruturas (*structs*).
 * Sem importação de bibliotecas externas ou uso de funções de cabeçalhos complexos do C padrão.
 
-Também ficam fora da gramática alvo, por enquanto, `do-while`, `switch/case`, `break`, `continue`, `return`, funções, arrays e literais string, embora seus tokens já existam no lexer.
+Também ficam fora, por enquanto, funções, arrays, literais string e `default` no `switch`. Já `do-while`, `switch/case`, `break`, `continue` e `return` são reconhecidos pelo parser e executados pelo avaliador.

@@ -1,0 +1,28 @@
+Declarado: soma : int = 0
+Declarado: i : int
+Declarado: media : float
+Declarado: letra : char = 'A'
+int i = 0
+int soma = 0
+int i = 1
+int soma = 1
+int i = 2
+int soma = 3
+int i = 3
+int soma = 6
+int i = 4
+int soma = 10
+int i = 5
+float media = 2.000000
+Declarado: fat : int = 1
+Declarado: n : int = 5
+int fat = 5
+int n = 4
+int fat = 20
+int n = 3
+int fat = 60
+int n = 2
+int fat = 120
+int n = 1
+char letra = 'B'
+Resultado da expressão: 22
