@@ -143,7 +143,7 @@ FOR
 
 ## Integração com o parser (a fazer)
 
-Para ligar o parser à AST, cada regra de `parser.y` deve chamar o construtor correspondente (veja a tabela em [Gramática](gramatica.md#47-correspondencia-entre-a-gramatica-e-a-ast)). Um cuidado de memória: o lexer entrega `IDENT` e `L_STRING` em `sval` alocado com `malloc`, e `new_id_node`, `new_assign_node` e `new_decl_node` **duplicam** o nome. Portanto o parser deve chamar `free` no `sval` depois de criar o nó, senão há vazamento.
+Para ligar o parser à AST, cada regra de `parser.y` deve chamar o construtor correspondente (veja a tabela em [Gramática](gramatica.md#47-correspondencia-entre-a-gramatica-e-a-ast)). Um cuidado de memória: o lexer entrega `IDENT` em `sval` alocado com `malloc`, e `new_id_node`, `new_assign_node` e `new_decl_node` **duplicam** o nome. Portanto o parser deve chamar `free` no `sval` depois de criar o nó, senão há vazamento.
 
 ## Testes
 
