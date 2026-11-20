@@ -38,31 +38,6 @@ static char *dup_string(const char *text){
     return dup;
 }
 
-static char *decod_string(const char *text){
-    size_t leng = strlen(text);
-    char *res = malloc(leng + 1);
-    size_t i = 1;
-    size_t j = 0;
-
-    if (res == NULL){
-        perror("malloc");
-        exit(EXIT_FAILURE);
-    }
-
-    while (i < leng - 1){
-        if (text[i] == '\\' && i + 1 < leng - 1){
-            res[j++] = trad_esc(text[i + 1]);
-            i += 2;
-        }
-        else {
-            res[j++] = text[i++];
-        }
-    }
-
-    res[j] = '\0';
-    return res;
-}
-
 static char decod_char(const char *text){
     if (text[1] == '\\') return trad_esc(text[2]);
 
@@ -121,7 +96,6 @@ static char decod_char(const char *text){
 ")"         { return RPAREN; }
 ":"         {return COLON; }
 ";"         { return SEMICOLON; }
-","         { return COMMA; }
 
     /* comentarios */
 "//"[^\n]* {
@@ -173,11 +147,6 @@ static char decod_char(const char *text){
     return L_CHAR;
 }
 
-\"(\\.|[^"\\])*\" {
-    yylval.sval = decod_string(yytext);
-    return L_STRING;
-}
-
 [a-zA-Z_][a-zA-Z0-9_]* {
     yylval.sval = dup_string(yytext);
     return IDENT;
@@ -196,6 +165,7 @@ static char decod_char(const char *text){
     /* caractere nao conhecido */
 . {
     fprintf(stderr, "erro na linha %d: '%s'\n", linha_erro, yytext);
+    return yytext[0];   /* token inexistente na gramatica: o parser rejeita a entrada */
 }
 
 %%
