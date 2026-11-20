@@ -49,27 +49,20 @@ Abrange as constantes numéricas inteiras e reais (floats), contemplando múltip
 
 ---
 
-## 3. Literais de Caractere e Strings
+## 3. Literais de Caractere
 
-Tratam os valores textuais e caracteres individuais, incluindo o suporte a sequências de escape padrão da linguagem C (como `\n` e `\t`).
+Tratam caracteres individuais, incluindo o suporte a sequências de escape padrão da linguagem C (como `\n` e `\t`). Literais de string **não fazem parte da linguagem**: veja [Gramática](gramatica.md#5-restricoes-de-escopo-do-projeto).
 
 ### 3.1. Literais de Caractere
 * **Expressão Regular:** `'(\\.|[^'\\])'`
 * **Token associado:** `L_CHAR`
 * **Descrição:** Delimitado por aspas simples, aceita um caractere comum (que não seja aspa simples ou barra invertida) ou uma sequência de escape precedida por barra invertida (`\`).
 
-### 3.2. Literais de String
-* **Expressão Regular:** `\"(\\.|[^"\\])*\"`
-* **Token associado:** `L_STRING`
-* **Descrição:** Delimitado por aspas duplas, aceita zero ou mais caracteres internos normais ou sequências de escape.
-
 ### Exemplos:
 | Lexema de Entrada | Token Esperado |
 | :--- | :--- |
 | `'a'` | `L_CHAR` |
 | `'\n'` | `L_CHAR` |
-| `"Olá, Mundo!"` | `L_STRING` |
-| `"Erro: %d\n"` | `L_STRING` |
 
 ---
 
@@ -97,7 +90,7 @@ Os operadores e delimitadores cobrem os símbolos aritméticos, relacionais, ló
 * **Atribuição:** `=` (`O_ASSIGN`)
 * **Relacionais:** `==` (`R_EQ`), `!=` (`R_NE`), `<` (`R_LT`), `>` (`R_GT`), `<=` (`R_LE`), `>=` (`R_GE`)
 * **Lógicos:** `&&` (`DM_AND`), `||` (`DM_OR`), `!` (`DM_NOT`)
-* **Delimitadores:** `{` (`LBRACE`), `}` (`RBRACE`), `[` (`LBRACKET`), `]` (`RBRACKET`), `(` (`LPAREN`), `)` (`RPAREN`), `:` (`COLON`), `;` (`SEMICOLON`), `,` (`COMMA`)
+* **Delimitadores:** `{` (`LBRACE`), `}` (`RBRACE`), `[` (`LBRACKET`), `]` (`RBRACKET`), `(` (`LPAREN`), `)` (`RPAREN`), `:` (`COLON`), `;` (`SEMICOLON`)
 
 ---
 
