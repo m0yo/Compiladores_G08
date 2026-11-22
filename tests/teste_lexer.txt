@@ -6,7 +6,7 @@ int main() {
     char b = '\'';
     char c = '\\';
 
-    string texto = "linha 1\nlinha 2\t\"teste\"";
+    int z = 3 * (y - 1);
 
     // comentario de uma linha
 

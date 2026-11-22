@@ -1,0 +1,3 @@
+// funcao: chamada fora do escopo (erro sintatico)
+int x = 1;
+x = f(x);

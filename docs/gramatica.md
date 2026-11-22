@@ -33,7 +33,6 @@ Os tokens são declarados em `parser.y` e produzidos pelo analisador léxico (ve
 | `L_INT` | `ival` | `int` |
 | `L_FLOAT` | `dval` | `double` |
 | `L_CHAR` | `cval` | `char` |
-| `L_STRING` | `sval` | `char *` |
 | `IDENT` | `sval` | `char *` |
 
 ### Terminais sem valor semântico
@@ -41,7 +40,7 @@ Os tokens são declarados em `parser.y` e produzidos pelo analisador léxico (ve
 * **Tipos:** `T_INT`, `T_FLOAT`, `T_CHAR`, `T_DOUBLE`, `T_LONG`
 * **Controle de fluxo:** `F_IF`, `F_ELSE`, `F_WHILE`, `F_FOR`, `F_DO`, `F_SWITCH`, `F_CASE`, `F_BREAK`, `F_CONTINUE`, `F_RETURN`
 * **Operadores:** `O_PLUS`, `O_MINUS`, `O_MULTI`, `O_DIV`, `O_ASSIGN`, `R_EQ`, `R_NE`, `R_LT`, `R_GT`, `R_LE`, `R_GE`, `DM_AND`, `DM_OR`, `DM_NOT`
-* **Delimitadores:** `LBRACE`, `RBRACE`, `LBRACKET`, `RBRACKET`, `LPAREN`, `RPAREN`, `COLON`, `SEMICOLON`, `COMMA`
+* **Delimitadores:** `LBRACE`, `RBRACE`, `LBRACKET`, `RBRACKET`, `LPAREN`, `RPAREN`, `COLON`, `SEMICOLON`
 
 ---
 
@@ -138,7 +137,7 @@ Da menor para a maior precedência (as linhas de baixo prendem mais forte):
 * `main` chama `yyparse()` e devolve o resultado como código de saída: `0` se a entrada é aceita e `1` se há erro sintático.
 * Erros sintáticos são impressos em `stderr` como `Erro sintático: <mensagem>`, sem número de linha.
 * `break`, `continue` e `return` são aceitos em qualquer lugar; checar se estão dentro de laço ou função é trabalho da análise semântica.
-* `L_STRING`, `COMMA`, `LBRACKET` e `RBRACKET` são produzidos pelo lexer, mas nenhuma regra os consome ainda.
+* `LBRACKET` e `RBRACKET` são produzidos pelo lexer, mas nenhuma regra os consome ainda.
 * `default` não existe como token no lexer (chega como `IDENT`), então o `switch` só aceita `case`.
 
 ---
@@ -262,6 +261,8 @@ Para manter o interpretador focado no aprendizado dos conceitos fundamentais de 
 
 * Sem suporte a ponteiros (*pointers*).
 * Sem suporte a estruturas (*structs*).
+* Sem suporte a literais de string (*strings*).
+* Sem suporte a definição nem chamada de funções.
 * Sem importação de bibliotecas externas ou uso de funções de cabeçalhos complexos do C padrão.
 
-Também ficam fora, por enquanto, funções, arrays, literais string e `default` no `switch`. Já `do-while`, `switch/case`, `break`, `continue` e `return` são reconhecidos pelo parser, mas ainda não têm nó na AST nem avaliação.
+Também ficam fora, por enquanto, arrays e `default` no `switch`. Programas que usam strings, funções ou structs são rejeitados com erro léxico ou sintático (veja `tests/escopo/`). Já `do-while`, `switch/case`, `break`, `continue` e `return` são reconhecidos pelo parser, mas ainda não têm nó na AST nem avaliação.

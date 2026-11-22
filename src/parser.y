@@ -49,7 +49,6 @@ void yyerror(const char *s);
 %token <ival> L_INT
 %token <dval> L_FLOAT
 %token <cval> L_CHAR
-%token <sval> L_STRING
 
 /* Identificador */
 %token <sval> IDENT
@@ -83,7 +82,6 @@ void yyerror(const char *s);
 %token RPAREN
 %token COLON
 %token SEMICOLON
-%token COMMA
 
 /* Precedência (da menor para a maior) */
 

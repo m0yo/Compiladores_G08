@@ -12,15 +12,15 @@ Este projeto é um **interpretador para a linguagem C, implementado na própria 
 
 ## Estado atual do projeto
 
-- ✅ **Lexer (análise léxica)** — implementado em Flex (`src/lexer.l`), reconhece palavras-chave, operadores, literais (`int`, `float`, `char` e string), identificadores, delimitadores e comentários (`//` e `/* */`), retornando os tokens e os valores semânticos (`yylval`) e contando as linhas para mensagens de erro
+- ✅ **Lexer (análise léxica)** — implementado em Flex (`src/lexer.l`), reconhece palavras-chave, operadores, literais (`int`, `float` e `char`), identificadores, delimitadores e comentários (`//` e `/* */`), retornando os tokens e os valores semânticos (`yylval`) e contando as linhas para mensagens de erro
 - 🚧 **Parser (análise sintática, com Bison)** — `src/parser.y` está integrado ao lexer e reconhece **uma única expressão** (aritmética, relacional, lógica, parênteses, literais e identificadores); faltam declarações, atribuições e comandos, e ainda não há ações semânticas
 - 🚧 **Árvore Sintática Abstrata (AST)** — `src/ast.c` e `src/ast.h`: nós, construtores, impressão (`print_ast`) e liberação (`free_ast`) implementados e testados; ainda não é construída pelo parser
 - 🚧 **Tabela de símbolos** — `src/tabela_simbolos.c` e `.h`: tabela hash com os tipos `int`, `float` e `char`, escopo único (global)
 - 🚧 **Avaliador (`eval_ast`)** — executa expressões, declarações, atribuições, `if`, `while`, `for` e blocos sobre uma AST; validado por `src/test_main.c`, mas ainda não é chamado a partir do parser
 - ⬜ Ações semânticas no parser (construir a AST a partir do código-fonte)
 - ⬜ Análise semântica separada da execução (verificação de tipos e escopos; hoje os erros são detectados em tempo de execução)
-- ⬜ Suporte a `long`/`double`, `do-while`, `switch`, `break`/`continue`/`return` e funções (os tokens já existem no lexer, mas nada os consome ainda)
-- ⬜ Suporte completo a tipos, ponteiros, structs, etc.
+- ⬜ Suporte a `long`/`double`, `do-while`, `switch`, `break`/`continue`/`return` na AST e no avaliador (o parser já os reconhece)
+- ⬜ Suporte completo a tipos básicos
 
 > Atualize este checklist conforme o projeto avança — é a forma mais rápida de qualquer pessoa entender "onde estamos" sem ler código.
 
@@ -128,8 +128,7 @@ Isso sobe um servidor local (geralmente em `http://127.0.0.1:8000`) com o site d
 - [ ] Executar programas completos (parser → AST → `eval_ast`)
 - [ ] Implementar análise semântica (tipos, escopos)
 - [ ] Suporte a estruturas de controle (`if`, `while` e `for` já são avaliados na AST; faltam o parser, `do-while` e `switch`)
-- [ ] Suporte a funções
-- [ ] Suporte a tipos compostos (structs, arrays, ponteiros)
+- [ ] Suporte a arrays
 - [ ] Testes automatizados cobrindo cada etapa do pipeline (hoje existem testes da AST e da tabela de símbolos em `src/test_main.c`; faltam parser e pipeline completo)
 
 ## Como contribuir

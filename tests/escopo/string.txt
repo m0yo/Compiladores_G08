@@ -1,0 +1,2 @@
+// string: fora do escopo (erro lexico seguido de erro sintatico)
+char c = "abc";
