@@ -27,6 +27,14 @@ typedef enum{
     AST_IF,
     AST_WHILE,
     AST_FOR,
+    AST_DO_WHILE, //do body while (cond); usa os campos de while_stmt
+    AST_SWITCH,
+    AST_CASE,     //um "case rotulo:" dentro do switch
+
+    //desvios
+    AST_BREAK,
+    AST_CONTINUE,
+    AST_RETURN,
 
     AST_BLOCK //lista de comandos
 } TipoNo;
@@ -113,6 +121,23 @@ typedef struct ASTNode{
             struct ASTNode *body;
         } for_stmt;
 
+        //AST_SWITCH: switch (expr) { cases } (cases: lista de AST_CASE via next)
+        struct {
+            struct ASTNode *expr;
+            struct ASTNode *cases;
+        } switch_stmt;
+
+        //AST_CASE: case value: stmts
+        struct {
+            int value;
+            struct ASTNode *stmts;
+        } case_stmt;
+
+        //AST_RETURN: return [expr];
+        struct {
+            struct ASTNode *expr;       //NULL se "return;"
+        } return_stmt;
+
         //AST_BLOCK: { stmt_list } 
         struct {
             struct ASTNode *stmts;      //cabeça da lista encadeada 
@@ -144,8 +169,32 @@ ASTNode *new_while_stmt_node(ASTNode *cond, ASTNode *body);
 ASTNode *new_for_stmt_node(ASTNode *init, ASTNode *cond, ASTNode *step,
                       ASTNode *body);
 
+ASTNode *new_do_while_node(ASTNode *body, ASTNode *cond);
+ASTNode *new_switch_node(ASTNode *expr, ASTNode *cases);
+ASTNode *new_case_node(int value, ASTNode *stmts);
+
+//Desvios
+ASTNode *new_break_node(void);
+ASTNode *new_continue_node(void);
+ASTNode *new_return_node(ASTNode *expr);
+
 //Estrutural 
 ASTNode *new_block_node(ASTNode *stmts);
+
+/*
+ Estado do controle de fluxo durante a execucao.
+ break/continue/return mudam esse estado; exec_list para de executar
+ comandos enquanto ele nao for CTRL_NORMAL, e os lacos/switch o consomem.
+*/
+typedef enum {
+    CTRL_NORMAL,
+    CTRL_BREAK,
+    CTRL_CONTINUE,
+    CTRL_RETURN
+} ControleFluxo;
+
+extern ControleFluxo controle_fluxo;
+extern resultado valor_retorno; //valor do ultimo return executado
 
 /*
  Avaliador: percorre a AST e executa o programa

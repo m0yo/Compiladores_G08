@@ -46,7 +46,7 @@ static char decod_char(const char *text){
 
 %}
 
-%option noyywrap
+%option noyywrap nounput noinput
 
 %x COMENTARIO
 

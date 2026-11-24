@@ -104,6 +104,41 @@ ASTNode *new_for_stmt_node(ASTNode *init, ASTNode *cond, ASTNode *step, ASTNode 
     return node;
 }
 
+ASTNode *new_do_while_node(ASTNode *body, ASTNode *cond) {
+    ASTNode *node = alloc_node(AST_DO_WHILE);
+    node->data.while_stmt.cond = cond;
+    node->data.while_stmt.body = body;
+    return node;
+}
+
+ASTNode *new_switch_node(ASTNode *expr, ASTNode *cases) {
+    ASTNode *node = alloc_node(AST_SWITCH);
+    node->data.switch_stmt.expr = expr;
+    node->data.switch_stmt.cases = cases;
+    return node;
+}
+
+ASTNode *new_case_node(int value, ASTNode *stmts) {
+    ASTNode *node = alloc_node(AST_CASE);
+    node->data.case_stmt.value = value;
+    node->data.case_stmt.stmts = stmts;
+    return node;
+}
+
+ASTNode *new_break_node(void) {
+    return alloc_node(AST_BREAK);
+}
+
+ASTNode *new_continue_node(void) {
+    return alloc_node(AST_CONTINUE);
+}
+
+ASTNode *new_return_node(ASTNode *expr) {
+    ASTNode *node = alloc_node(AST_RETURN);
+    node->data.return_stmt.expr = expr;
+    return node;
+}
+
 ASTNode *new_block_node(ASTNode *statements) {
     ASTNode *node = alloc_node(AST_BLOCK);
     node->data.block.stmts = statements;
@@ -161,14 +196,38 @@ execucao de uma lista encadeada de comandos
 percorre todos os nos via next
 */
 
+ControleFluxo controle_fluxo = CTRL_NORMAL;
+resultado valor_retorno = {0, TYPE_INT};
+
 static resultado exec_list(ASTNode *node){
     resultado last = {0, TYPE_INT}; //valor default
-    while(node){
+    //para no primeiro break/continue/return
+    while(node && controle_fluxo == CTRL_NORMAL){
         last = eval_ast(node);
         node = node->next;
     }
     return last;
 }    
+
+/*
+chamada pelos lacos depois de executar o corpo:
+retorna 1 se o laco deve terminar (break ou return)
+break e continue sao consumidos aqui; return continua propagando
+*/
+static int laco_deve_parar(void){
+    switch(controle_fluxo){
+        case CTRL_BREAK:
+            controle_fluxo = CTRL_NORMAL;
+            return 1;
+        case CTRL_CONTINUE:
+            controle_fluxo = CTRL_NORMAL;
+            return 0;
+        case CTRL_RETURN:
+            return 1;
+        default:
+            return 0;
+    }
+}
 
 /*
 avalia recursivamente a arvore
@@ -379,6 +438,18 @@ resultado eval_ast(ASTNode *node){
             resultado cond = eval_ast(node->data.while_stmt.cond);
             if(!cond.val) break;
             exec_list(node->data.while_stmt.body);
+            if(laco_deve_parar()) break;
+        }
+        break;
+    }
+
+    //do-while: o corpo executa pelo menos uma vez
+    case AST_DO_WHILE: {
+        while(1){
+            exec_list(node->data.while_stmt.body);
+            if(laco_deve_parar()) break;
+            resultado cond = eval_ast(node->data.while_stmt.cond);
+            if(!cond.val) break;
         }
         break;
     }
@@ -394,9 +465,44 @@ resultado eval_ast(ASTNode *node){
                 if(!cond.val) break;
             }
             exec_list(node->data.for_stmt.body);
+            if(laco_deve_parar()) break;
             if(node->data.for_stmt.step)
                 eval_ast(node->data.for_stmt.step);
         }
+        break;
+    }
+
+    //switch: executa a partir do case que casa ate um break (fall-through, como em C)
+    case AST_SWITCH: {
+        resultado v = eval_ast(node->data.switch_stmt.expr);
+        ASTNode *c = node->data.switch_stmt.cases;
+        while(c && c->data.case_stmt.value != (int)v.val)
+            c = c->next;
+        for(; c && controle_fluxo == CTRL_NORMAL; c = c->next)
+            exec_list(c->data.case_stmt.stmts);
+        if(controle_fluxo == CTRL_BREAK) //break sai do switch; continue/return seguem
+            controle_fluxo = CTRL_NORMAL;
+        break;
+    }
+
+    //AST_CASE so e executado pelo AST_SWITCH
+    case AST_CASE:
+        break;
+
+    case AST_BREAK:
+        controle_fluxo = CTRL_BREAK;
+        break;
+
+    case AST_CONTINUE:
+        controle_fluxo = CTRL_CONTINUE;
+        break;
+
+    case AST_RETURN: {
+        resultado r = {0, TYPE_INT};
+        if(node->data.return_stmt.expr)
+            r = eval_ast(node->data.return_stmt.expr);
+        valor_retorno = r;
+        controle_fluxo = CTRL_RETURN;
         break;
     }
 
@@ -542,6 +648,42 @@ void print_ast(ASTNode *node, int level) {
         print_ast(node->data.for_stmt.body, level + 2);
         break;
 
+    case AST_DO_WHILE:
+        printf("DO_WHILE\n");
+        for (int i = 0; i < level + 1; i++) printf("  ");
+        printf("body:\n");
+        print_ast(node->data.while_stmt.body, level + 2);
+        for (int i = 0; i < level + 1; i++) printf("  ");
+        printf("cond:\n");
+        print_ast(node->data.while_stmt.cond, level + 2);
+        break;
+
+    case AST_SWITCH:
+        printf("SWITCH\n");
+        for (int i = 0; i < level + 1; i++) printf("  ");
+        printf("expr:\n");
+        print_ast(node->data.switch_stmt.expr, level + 2);
+        print_ast(node->data.switch_stmt.cases, level + 1);
+        break;
+
+    case AST_CASE:
+        printf("CASE (%d)\n", node->data.case_stmt.value);
+        print_ast(node->data.case_stmt.stmts, level + 1);
+        break;
+
+    case AST_BREAK:
+        printf("BREAK\n");
+        break;
+
+    case AST_CONTINUE:
+        printf("CONTINUE\n");
+        break;
+
+    case AST_RETURN:
+        printf("RETURN\n");
+        print_ast(node->data.return_stmt.expr, level + 1);
+        break;
+
     case AST_BLOCK:
         printf("BLOCK\n");
         print_ast(node->data.block.stmts, level + 1);
@@ -611,6 +753,28 @@ void free_ast(ASTNode *node) {
         free_ast(node->data.for_stmt.cond);
         free_ast(node->data.for_stmt.step);
         free_ast(node->data.for_stmt.body);
+        break;
+
+    case AST_DO_WHILE:
+        free_ast(node->data.while_stmt.cond);
+        free_ast(node->data.while_stmt.body);
+        break;
+
+    case AST_SWITCH:
+        free_ast(node->data.switch_stmt.expr);
+        free_ast(node->data.switch_stmt.cases);
+        break;
+
+    case AST_CASE:
+        free_ast(node->data.case_stmt.stmts);
+        break;
+
+    case AST_BREAK:
+    case AST_CONTINUE:
+        break;
+
+    case AST_RETURN:
+        free_ast(node->data.return_stmt.expr);
         break;
 
     case AST_BLOCK:
