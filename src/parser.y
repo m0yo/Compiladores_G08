@@ -16,6 +16,7 @@
 #include <stdlib.h>
 #include "ast.h"
 #include "tabela_simbolos.h"
+#include "semantica.h"
 
 int yylex(void);
 void yyerror(const char *s);
@@ -228,7 +229,8 @@ lista_casos:
     ;
 
 caso:
-      F_CASE rotulo COLON lista_comandos  { $$ = new_case_node($2, $4); }
+      F_CASE rotulo COLON { $<ival>$ = linha_erro; } lista_comandos
+                                { $$ = new_case_node($2, $5); $$->linha = $<ival>4; }
     ;
 
 rotulo:
@@ -301,6 +303,14 @@ int main(int argc, char **argv) {
         return 1;
 
     ASTNode *programa = new_block_node(raiz);
+
+    /* análise semântica: se houver erro, o programa não é executado */
+    if (analisar_semantica(programa) > 0) {
+        free_ast(programa);
+        limpar_tabela();
+        if (arquivo) fclose(yyin);
+        return 1;
+    }
 
     if (mostrar_ast) {
         printf("=== AST ===\n");

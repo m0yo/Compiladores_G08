@@ -16,12 +16,12 @@ CC     = gcc
 CFLAGS = -Wall -I$(BUILD_DIR) -Isrc
 
 # Módulos em C (AST, avaliador e tabela de símbolos)
-C_SRCS = src/ast.c src/tabela_simbolos.c
+C_SRCS = src/ast.c src/tabela_simbolos.c src/semantica.c
 
 # Compila lexer + parser juntos
 all: $(EXEC)
 
-$(EXEC): $(BISON_C) $(FLEX_C) $(C_SRCS) src/ast.h src/tabela_simbolos.h
+$(EXEC): $(BISON_C) $(FLEX_C) $(C_SRCS) src/ast.h src/tabela_simbolos.h src/semantica.h
 	$(CC) $(CFLAGS) -o $@ $(BISON_C) $(FLEX_C) $(C_SRCS) -lm
 
 # Lexer isolado: imprime os tokens (usa o parser.tab.h só para os códigos dos tokens)
