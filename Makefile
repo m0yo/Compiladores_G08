@@ -39,7 +39,7 @@ $(BISON_C) $(BISON_H): $(BISON_FILE) | $(BUILD_DIR)
 $(FLEX_C): $(FLEX_FILE) $(BISON_H) | $(BUILD_DIR)
 	flex -o $(FLEX_C) $(FLEX_FILE)
 
-# Testes: unitários da AST + programas de exemplo (saída comparada com .esperado)
+# Testes: unitários da AST + programas de exemplo e de análise semântica (saída comparada com .esperado)
 TEST_AST = $(BUILD_DIR)/test_ast
 
 $(TEST_AST): src/test_main.c $(C_SRCS) src/ast.h src/tabela_simbolos.h | $(BUILD_DIR)
@@ -47,7 +47,7 @@ $(TEST_AST): src/test_main.c $(C_SRCS) src/ast.h src/tabela_simbolos.h | $(BUILD
 
 test: $(EXEC) $(TEST_AST)
 	@./$(TEST_AST) > /dev/null && echo "[OK ] testes unitários da AST" || { echo "[FALHOU] testes unitários da AST"; exit 1; }
-	@falhas=0; for f in tests/programas/*.c; do \
+	@falhas=0; for f in tests/programas/*.c tests/semantica/*.c; do \
 		esp="$${f%.c}.esperado"; \
 		if ./$(EXEC) "$$f" 2>&1 | diff -u "$$esp" - > /dev/null; then echo "[OK ] $$f"; \
 		else echo "[FALHOU] $$f"; ./$(EXEC) "$$f" 2>&1 | diff -u "$$esp" -; falhas=1; fi; \
