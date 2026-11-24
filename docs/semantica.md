@@ -18,10 +18,11 @@ Sem essa fase, os mesmos problemas só apareciam durante a execução, depois de
 |---|---|---|
 | Variável usada ou atribuída sem declaração | erro | `variável 'x' não declarada` |
 | Variável declarada duas vezes | erro | `variável 'x' já declarada` |
-| Divisão por zero com divisor literal (`a / 0`, `a / 0.0`) | erro | `divisão por zero` |
 | `break` fora de laço e de `switch` | erro | `'break' fora de laço ou switch` |
 | `continue` fora de laço (dentro de `switch` não basta) | erro | `'continue' fora de laço` |
 | Valor repetido em `case` do mesmo `switch` | erro | `valor 'case N' repetido no switch` |
+| Divisão por zero com divisor literal (`a / 0`, `a / 0.0`) | aviso | `divisão por zero` |
+| Variável usada sem nenhuma atribuição antes no texto | aviso | `variável 'x' pode ser usada sem valor` |
 | `float` atribuído a `int` ou `char` | aviso | `'x' recebe um float e será convertido para int (perde a parte decimal)` |
 
 Os **avisos** não impedem a execução e não mudam o código de saída. Todos os erros do programa são informados de uma vez, na ordem em que aparecem no código.
@@ -30,7 +31,7 @@ Formato das mensagens (em `stderr`):
 
 ```
 Erro semântico na linha 3: variável 'b' não declarada
-Aviso na linha 2: 'i' recebe um float e será convertido para int (perde a parte decimal)
+Aviso semântico na linha 2: 'i' recebe um float e será convertido para int (perde a parte decimal)
 ```
 
 ### Exemplo
@@ -46,7 +47,7 @@ continue;
 ```
 Erro semântico na linha 2: variável 'a' já declarada
 Erro semântico na linha 3: variável 'b' não declarada
-Erro semântico na linha 4: divisão por zero
+Aviso semântico na linha 4: divisão por zero
 Erro semântico na linha 5: 'continue' fora de laço
 ```
 
@@ -68,7 +69,8 @@ Cada nó da AST guarda o campo `linha`, copiado da linha atual do lexer no momen
 
 ## O que **não** é verificado
 
-* Valores só conhecidos em execução: `a / b` com `b` igual a zero continua dando `Erro: Divisão por zero!` durante a execução.
+* Valores só conhecidos em execução: `a / b` com `b` igual a zero continua dando `Erro: Divisão por zero!` durante a execução. Com divisor literal (`a / 0`), a análise só avisa; se a divisão for executada, o avaliador também para com esse erro.
+* O aviso de "sem valor" é simples: qualquer atribuição anterior no texto conta, mesmo dentro de um `if` ou laço que pode não executar.
 * Uso de uma variável declarada em um ramo que não executa (a análise é estática e o escopo é único).
 * `long` e `double` são tratados como `int` e `float` (a tabela de símbolos só tem esses tipos).
 * Funções, strings, structs e ponteiros não existem na linguagem (veja [Gramática](gramatica.md)).
@@ -84,7 +86,8 @@ Os casos estão em `tests/semantica/`. Cada `nome.c` tem um `nome.esperado` com 
 | `nao_declarada_atribuicao.c` | atribuição a variável não declarada |
 | `nao_declarada_expressao.c` | variável não declarada dentro de uma expressão |
 | `redeclaracao.c` | variável declarada duas vezes |
-| `divisao_por_zero.c` | divisor literal igual a zero |
+| `divisao_por_zero.c` | divisor literal igual a zero (só avisa; a divisão não é executada) |
+| `aviso_sem_valor.c` | variável usada sem atribuição antes (só avisa) |
 | `break_fora_de_laco.c` | `break` no nível do programa |
 | `continue_fora_de_laco.c` | `continue` dentro de `switch` fora de laço |
 | `case_repetido.c` | dois `case 1` no mesmo `switch` |

@@ -1,3 +1,3 @@
-// divisao por zero (divisor literal)
+// divisao por zero com divisor literal: so avisa (o if impede a execucao da divisao)
 int a = 10;
-int b = a / 0;
+if (a > 100) a = a / 0;

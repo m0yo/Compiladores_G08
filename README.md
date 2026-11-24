@@ -1,6 +1,6 @@
 # Compiladores_G08
 
-> ⚠️ **Projeto em desenvolvimento.** O pipeline lexer → parser → AST → avaliador está conectado: o interpretador executa programas com declarações, atribuições, expressões e comandos de controle (`if`, `while`, `do-while`, `for`, `switch`, `break`, `continue`, `return`). O interpretador também faz uma análise semântica antes de executar (variável não declarada, redeclaração, divisão por zero, `break`/`continue` fora de laço, `case` repetido). Ainda faltam outros recursos (veja o checklist; funções, strings e structs estão fora do escopo). Este README serve como guia de orientação para quem for contribuir ou acompanhar o projeto.
+> ⚠️ **Projeto em desenvolvimento.** O pipeline lexer → parser → AST → avaliador está conectado: o interpretador executa programas com declarações, atribuições, expressões e comandos de controle (`if`, `while`, `do-while`, `for`, `switch`, `break`, `continue`, `return`). O interpretador também faz uma análise semântica antes de executar (variável não declarada, redeclaração, `break`/`continue` fora de laço, `case` repetido, além de avisos de divisão por zero, conversão de `float` e variável sem valor). Ainda faltam outros recursos (veja o checklist; funções, strings e structs estão fora do escopo). Este README serve como guia de orientação para quem for contribuir ou acompanhar o projeto.
 
 Documentação publicada: <https://m0yo.github.io/Compiladores_G08/>
 
@@ -41,7 +41,7 @@ código-fonte (.c)
 [ AST + Tabela de símbolos ] → estruturas do programa -> implementadas (src/ast.*, src/tabela_simbolos.*)
       │
       ▼
-[ Análise semântica ] → declarações, divisão por zero, break/continue, case repetido -> pronta (src/semantica.*)
+[ Análise semântica ] → declarações, break/continue, case repetido (+ avisos) -> pronta (src/semantica.*)
       │
       ▼
  [ Interpretador ] → percorre a AST e executa o programa (eval_ast) -> pronto para o subconjunto atual

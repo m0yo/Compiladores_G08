@@ -1,5 +1,5 @@
-Aviso na linha 2: 'i' recebe um float e será convertido para int (perde a parte decimal)
-Aviso na linha 4: 'c' recebe um float e será convertido para char (perde a parte decimal)
+Aviso semântico na linha 2: 'i' recebe um float e será convertido para int (perde a parte decimal)
+Aviso semântico na linha 4: 'c' recebe um float e será convertido para char (perde a parte decimal)
 Declarado: i : int = 3
 Declarado: c : char
 char c = 2

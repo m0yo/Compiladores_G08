@@ -2,10 +2,12 @@
  Analise semantica: percorre a AST antes da execucao e detecta
  - variavel usada sem declaracao
  - variavel declarada duas vezes
- - divisao por zero (divisor literal)
  - break/continue fora de laco (ou switch, no caso do break)
  - valor repetido em "case" do mesmo switch
- e avisa quando um float e atribuido a int/char (perde a parte decimal).
+ e avisa (sem impedir a execucao) quando
+ - um float e atribuido a int/char (perde a parte decimal)
+ - uma variavel pode ser usada sem valor (nenhuma atribuicao antes no texto)
+ - ha divisao por zero com divisor literal
 
  O escopo e unico (global), como no avaliador: uma variavel declarada
  dentro de um bloco continua visivel depois dele.
@@ -20,6 +22,7 @@
 typedef struct {
     char *nome;
     SymType tipo;
+    int com_valor;  //1 se houve inicializacao ou atribuicao antes, no texto
 } Declarada;
 
 static Declarada *vars = NULL;
@@ -50,7 +53,7 @@ static void erro(const ASTNode *no, const char *fmt, ...) {
 static void aviso(const ASTNode *no, const char *fmt, ...) {
     va_list ap;
     va_start(ap, fmt);
-    mensagem("Aviso", no, fmt, ap);
+    mensagem("Aviso semântico", no, fmt, ap);
     va_end(ap);
 }
 
@@ -60,7 +63,7 @@ static int procurar(const char *nome) {
     return -1;
 }
 
-static void declarar(const char *nome, SymType tipo) {
+static void declarar(const char *nome, SymType tipo, int com_valor) {
     if (n_vars == cap_vars) {
         cap_vars = cap_vars ? cap_vars * 2 : 16;
         vars = (Declarada *)realloc(vars, (size_t)cap_vars * sizeof(Declarada));
@@ -71,6 +74,7 @@ static void declarar(const char *nome, SymType tipo) {
     }
     vars[n_vars].nome = strdup(nome);
     vars[n_vars].tipo = tipo;
+    vars[n_vars].com_valor = com_valor;
     n_vars++;
 }
 
@@ -116,6 +120,10 @@ static SymType tipo_expr(const ASTNode *e) {
             erro(e, "variável '%s' não declarada", e->data.id.name);
             return TYPE_INT;
         }
+        if (!vars[i].com_valor) {
+            aviso(e, "variável '%s' pode ser usada sem valor", e->data.id.name);
+            vars[i].com_valor = 1;  //avisa uma vez so
+        }
         return vars[i].tipo;
     }
 
@@ -123,7 +131,7 @@ static SymType tipo_expr(const ASTNode *e) {
         SymType l = tipo_expr(e->data.binaryop.left);
         SymType r = tipo_expr(e->data.binaryop.right);
         if (e->data.binaryop.op == '/' && literal_zero(e->data.binaryop.right))
-            erro(e, "divisão por zero");
+            aviso(e, "divisão por zero");
         if (operador_booleano(e->data.binaryop.op)) return TYPE_INT;
         return (l == TYPE_FLOAT || r == TYPE_FLOAT) ? TYPE_FLOAT : TYPE_INT;
     }
@@ -176,7 +184,7 @@ static void visitar(const ASTNode *no) {
             if (procurar(no->data.decl.name) >= 0) {
                 erro(no, "variável '%s' já declarada", no->data.decl.name);
             } else {
-                declarar(no->data.decl.name, no->data.decl.type);
+                declarar(no->data.decl.name, no->data.decl.type, no->data.decl.init != NULL);
                 if (no->data.decl.init)
                     checar_conversao(no, no->data.decl.type, t, no->data.decl.name);
             }
@@ -188,8 +196,10 @@ static void visitar(const ASTNode *no) {
             SymType t = tipo_expr(no->data.assign.expr);
             if (i < 0)
                 erro(no, "variável '%s' não declarada", no->data.assign.name);
-            else
+            else {
                 checar_conversao(no, vars[i].tipo, t, no->data.assign.name);
+                vars[i].com_valor = 1;
+            }
             break;
         }
 
