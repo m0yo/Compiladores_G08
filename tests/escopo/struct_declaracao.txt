@@ -1,0 +1,2 @@
+// struct: declaracao fora do escopo (erro sintatico)
+struct ponto { int x; int y; };

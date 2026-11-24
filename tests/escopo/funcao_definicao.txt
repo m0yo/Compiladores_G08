@@ -1,0 +1,2 @@
+// funcao: definicao fora do escopo (erro sintatico)
+int soma(int a, int b) { return a + b; }

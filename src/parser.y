@@ -72,7 +72,6 @@ static ASTNode *anexar(ASTNode *a, ASTNode *b) {
 %token <ival> L_INT
 %token <dval> L_FLOAT
 %token <cval> L_CHAR
-%token <sval> L_STRING
 
 /* Identificador */
 %token <sval> IDENT
@@ -106,7 +105,6 @@ static ASTNode *anexar(ASTNode *a, ASTNode *b) {
 %token RPAREN
 %token COLON
 %token SEMICOLON
-%token COMMA
 
 /* Precedência (da menor para a maior) */
 
