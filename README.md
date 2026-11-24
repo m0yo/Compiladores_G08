@@ -1,6 +1,6 @@
 # Compiladores_G08
 
-> ⚠️ **Projeto em desenvolvimento.** O pipeline lexer → parser → AST → avaliador está conectado: o interpretador executa programas com declarações, atribuições, expressões e comandos de controle (`if`, `while`, `do-while`, `for`, `switch`, `break`, `continue`, `return`). Ainda faltam análise semântica separada e outros recursos (veja o checklist; funções, strings e structs estão fora do escopo). Este README serve como guia de orientação para quem for contribuir ou acompanhar o projeto.
+> ⚠️ **Projeto em desenvolvimento.** O pipeline lexer → parser → AST → avaliador está conectado: o interpretador executa programas com declarações, atribuições, expressões e comandos de controle (`if`, `while`, `do-while`, `for`, `switch`, `break`, `continue`, `return`). O interpretador também faz uma análise semântica antes de executar (variável não declarada, redeclaração, divisão por zero, `break`/`continue` fora de laço, `case` repetido). Ainda faltam outros recursos (veja o checklist; funções, strings e structs estão fora do escopo). Este README serve como guia de orientação para quem for contribuir ou acompanhar o projeto.
 
 Documentação publicada: <https://m0yo.github.io/Compiladores_G08/>
 
@@ -17,9 +17,10 @@ Este projeto é um **interpretador para a linguagem C, implementado na própria 
 - ✅ **Árvore Sintática Abstrata (AST)** — `src/ast.c` e `src/ast.h`: nós para todos os comandos do parser, construtores, impressão (`print_ast`) e liberação (`free_ast`)
 - 🚧 **Tabela de símbolos** — `src/tabela_simbolos.c` e `.h`: tabela hash com os tipos `int`, `float` e `char`, escopo único (global)
 - 🚧 **Avaliador (`eval_ast`)** — executa todos os comandos acima, chamado pelo `main` do parser; `long` e `double` são tratados como `int` e `float`
-- ✅ Testes automatizados com `make test` (unitários da AST + programas de ponta a ponta em `tests/programas/`)
+- ✅ **Análise semântica** — `src/semantica.c` e `.h`: percorre a AST antes de executar e rejeita o programa com `Erro semântico na linha N: ...` (veja `docs/semantica.md`); `float` atribuído a `int`/`char` gera só um aviso
+- ✅ Testes automatizados com `make test` (unitários da AST + programas de ponta a ponta em `tests/programas/` e de análise semântica em `tests/semantica/`)
 - ⬜ Saída de dados na linguagem (`printf`) e `int main() { ... }`
-- ⬜ Análise semântica separada da execução (verificação de tipos e escopos; hoje os erros são detectados em tempo de execução)
+- ⬜ Verificação de tipos mais completa e escopo de bloco (a análise semântica atual usa escopo único e só avisa sobre conversões `float` → `int`/`char`)
 - ⬜ Tipos próprios para `long`/`double` e `default` no `switch`
 - ⬜ Arrays e ponteiros (funções, strings e structs estão fora do escopo; veja `tests/escopo/`)
 
@@ -40,7 +41,7 @@ código-fonte (.c)
 [ AST + Tabela de símbolos ] → estruturas do programa -> implementadas (src/ast.*, src/tabela_simbolos.*)
       │
       ▼
-[ Análise semântica ] → valida tipos, escopos, declarações -> não iniciada
+[ Análise semântica ] → declarações, divisão por zero, break/continue, case repetido -> pronta (src/semantica.*)
       │
       ▼
  [ Interpretador ] → percorre a AST e executa o programa (eval_ast) -> pronto para o subconjunto atual
@@ -128,7 +129,8 @@ Isso sobe um servidor local (geralmente em `http://127.0.0.1:8000`) com o site d
 - [x] Implementar o parser (declarações e comandos)
 - [x] Conectar o parser à AST (ações semânticas que chamam os construtores `new_*_node`)
 - [x] Executar programas completos (parser → AST → `eval_ast`)
-- [ ] Implementar análise semântica (tipos, escopos)
+- [x] Implementar análise semântica (declarações, divisão por zero, `break`/`continue`, `case` repetido)
+- [ ] Verificação de tipos mais completa e escopo de bloco
 - [x] Suporte a estruturas de controle (`if`, `while`, `do-while`, `for`, `switch`, `break`, `continue`, `return`; falta `default`)
 - [ ] Suporte a arrays e ponteiros (funções, strings e structs estão fora do escopo)
 - [ ] Testes automatizados cobrindo cada etapa do pipeline (`make test` já cobre a AST e o pipeline completo; falta ampliar os casos, inclusive de erro)

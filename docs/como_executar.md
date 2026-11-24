@@ -15,7 +15,7 @@ Todos os arquivos gerados ficam em `build/`; os executáveis ficam na raiz do pr
 | Comando | O que faz |
 |---|---|
 | `make` | Compila lexer e parser juntos e gera o executável `parser_exe` |
-| `make test` | Roda os testes unitários da AST e os programas de `tests/programas/` |
+| `make test` | Roda os testes unitários da AST e os programas de `tests/programas/` e `tests/semantica/` |
 | `make lexer_exe` | Compila só o lexer, em modo isolado, e gera o executável `lexer_exe` |
 | `make clean` | Remove `parser_exe`, `lexer_exe` e a pasta `build/` |
 
@@ -55,10 +55,10 @@ Para cada token é impresso o código, o lexema e a linha. Veja o formato e os d
 make test
 ```
 
-O alvo roda duas coisas:
+O alvo roda duas coisas (a segunda cobre `tests/programas/` e `tests/semantica/`):
 
 1. **Testes unitários** (`src/test_main.c`, compilado em `build/test_ast`): tabela de símbolos, expressões, declarações, atribuições, `if/else`, `while`, `for` e `char`, montando a AST à mão.
-2. **Testes de ponta a ponta** (`tests/programas/*.c`): cada programa é executado pelo `parser_exe` e a saída (`stdout` e `stderr`) é comparada com o arquivo `.esperado` de mesmo nome. Para adicionar um caso, crie `nome.c`, confira a saída e salve-a com `./parser_exe tests/programas/nome.c > tests/programas/nome.esperado 2>&1`.
+2. **Testes de ponta a ponta** (`tests/programas/*.c` e `tests/semantica/*.c`, veja [Análise Semântica](semantica.md)): cada programa é executado pelo `parser_exe` e a saída (`stdout` e `stderr`) é comparada com o arquivo `.esperado` de mesmo nome. Para adicionar um caso, crie `nome.c`, confira a saída e salve-a com `./parser_exe tests/programas/nome.c > tests/programas/nome.esperado 2>&1`.
 
 Para rodar só os testes unitários e ver a saída completa: `make build/test_ast && ./build/test_ast`.
 
