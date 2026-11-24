@@ -30,8 +30,8 @@ A ferramenta responsável pela geração do analisador léxico é o **Flex** (Fa
 | Atribuição | `=` | `O_ASSIGN` |
 | Relacionais | `==` `!=` `<` `>` `<=` `>=` | `R_EQ` `R_NE` `R_LT` `R_GT` `R_LE` `R_GE` |
 | Lógicos | `&&` `\|\|` `!` | `DM_AND` `DM_OR` `DM_NOT` |
-| Delimitadores | `{` `}` `[` `]` `(` `)` `:` `;` `,` | `LBRACE` `RBRACE` `LBRACKET` `RBRACKET` `LPAREN` `RPAREN` `COLON` `SEMICOLON` `COMMA` |
-| Literais | inteiro, real, caractere, string | `L_INT` `L_FLOAT` `L_CHAR` `L_STRING` |
+| Delimitadores | `{` `}` `[` `]` `(` `)` `:` `;` | `LBRACE` `RBRACE` `LBRACKET` `RBRACKET` `LPAREN` `RPAREN` `COLON` `SEMICOLON` |
+| Literais | inteiro, real, caractere | `L_INT` `L_FLOAT` `L_CHAR` |
 | Identificadores | `[a-zA-Z_][a-zA-Z0-9_]*` | `IDENT` |
 
 As expressões regulares de cada grupo estão em [Expressões Regulares](expressoesRegularesFlex.md).
@@ -43,14 +43,13 @@ As expressões regulares de cada grupo estão em [Expressões Regulares](express
 | `L_INT` | `ival` (`int`) | convertido com `strtol` e cast para `int`, sem verificação de estouro |
 | `L_FLOAT` | `dval` (`double`) | convertido com `strtod` |
 | `L_CHAR` | `cval` (`char`) | caractere já com a sequência de escape traduzida |
-| `L_STRING` | `sval` (`char *`) | cópia alocada com `malloc`, sem as aspas e com os escapes traduzidos |
 | `IDENT` | `sval` (`char *`) | cópia alocada com `malloc` do lexema |
 
-> As strings de `sval` são alocadas pelo lexer e **não são liberadas** por ele: quem consome o token (o parser) é responsável por chamar `free`. Hoje o parser ainda não usa esses valores.
+> Os nomes de `IDENT` em `sval` são alocados pelo lexer e **não são liberados** por ele: quem consome o token (o parser) é responsável por chamar `free`. Hoje o parser ainda não usa esses valores.
 
 ### Sequências de escape
 
-Em literais de caractere e string, o lexer traduz `\n`, `\t`, `\r`, `\0`, `\\`, `\'` e `\"` para o caractere correspondente. Qualquer outra sequência `\x` vira simplesmente `x`.
+Em literais de caractere, o lexer traduz `\n`, `\t`, `\r`, `\0`, `\\` e `\'` para o caractere correspondente. Qualquer outra sequência `\x` vira simplesmente `x`.
 
 ## Comentários
 
@@ -63,14 +62,14 @@ Nenhum comentário gera token.
 ## Espaços e erros
 
 - Espaços, tabulações e `\r` são ignorados; `\n` apenas incrementa `linha_erro`.
-- Qualquer caractere que não case com nenhuma regra (por exemplo `@`, `#`, `%` ou um `&` ou `|` isolado) gera a mensagem `erro na linha N: 'c'` em `stderr`. **Nenhum token é retornado:** o caractere é descartado e a análise continua. Por isso o parser não percebe esses caracteres.
+- Qualquer caractere que não case com nenhuma regra (por exemplo `@`, `#`, `%` ou um `&` ou `|` isolado) gera a mensagem `erro na linha N: 'c'` em `stderr`. O lexer devolve o próprio caractere como token, que não existe na gramática; por isso o parser rejeita a entrada com erro sintático logo em seguida (o programa não é executado).
 
 ## Limitações conhecidas
 
 - Não existem tokens para `%`, `&` e `|` isolados, `++`, `--`, `+=` e demais operadores compostos, `.` e `->`.
 - Literais numéricos: apenas decimal. Não há hexadecimal, octal, notação científica (`1e3`), sufixos (`10L`, `1.5f`) nem reais como `.5` ou `5.` (o `5.` vira `L_INT` seguido de erro no `.`).
-- `short`, `signed`, `unsigned`, `void`, `bool`, `true` e `false` **não** são palavras reservadas: são reconhecidos como `IDENT`. O mesmo vale para `string`, `main` e `printf`.
-- `T_LONG`, `T_DOUBLE`, `L_STRING` e as palavras-chave `do`, `switch`, `case`, `break`, `continue` e `return` são reconhecidos pelo lexer, mas ainda não são consumidos pela gramática nem têm suporte na tabela de símbolos ou na AST.
+- `short`, `signed`, `unsigned`, `void`, `bool`, `true` e `false` **não** são palavras reservadas: são reconhecidos como `IDENT`. O mesmo vale para `string`, `main` e `printf`. Strings, funções e structs não fazem parte da linguagem: aspas duplas, `,` e `.` geram erro léxico e o parser rejeita a entrada.
+- `long` e `double` (`T_LONG`, `T_DOUBLE`) são aceitos pela gramática, mas ainda não têm tipo próprio: o parser os trata como `int` e `float`. `default` não é palavra-chave: chega como `IDENT`, então o `switch` só aceita `case`.
 
 ## Como testar
 

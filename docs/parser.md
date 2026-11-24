@@ -14,12 +14,12 @@ Os nomes abaixo são os mesmos usados pelo lexer (`src/lexer.l`). O Bison gera o
 |---|---|
 | Tipos | `T_INT` `T_FLOAT` `T_CHAR` `T_DOUBLE` `T_LONG` |
 | Controle de fluxo | `F_IF` `F_ELSE` `F_WHILE` `F_FOR` `F_DO` `F_SWITCH` `F_CASE` `F_BREAK` `F_CONTINUE` `F_RETURN` |
-| Literais | `L_INT` `L_FLOAT` `L_CHAR` `L_STRING` |
+| Literais | `L_INT` `L_FLOAT` `L_CHAR` |
 | Identificador | `IDENT` |
 | Operadores aritméticos e atribuição | `O_PLUS` `O_MINUS` `O_MULTI` `O_DIV` `O_ASSIGN` |
 | Operadores relacionais | `R_EQ` `R_NE` `R_LT` `R_GT` `R_LE` `R_GE` |
 | Operadores lógicos | `DM_AND` `DM_OR` `DM_NOT` |
-| Delimitadores | `LBRACE` `RBRACE` `LBRACKET` `RBRACKET` `LPAREN` `RPAREN` `COLON` `SEMICOLON` `COMMA` |
+| Delimitadores | `LBRACE` `RBRACE` `LBRACKET` `RBRACKET` `LPAREN` `RPAREN` `COLON` `SEMICOLON` |
 
 Dois nomes não vêm do lexer: `UMINUS` (menos unário) e `SEM_ELSE`. São marcadores só de precedência, usados com `%prec`.
 
@@ -98,9 +98,9 @@ O parser **aceita** a sintaxe abaixo; o comportamento é decidido na execução,
 
 O parser **não reconhece**:
 
-* Literais string: `L_STRING` é emitido pelo lexer, mas nenhuma regra o consome.
+* Strings, funções e structs: fora do escopo da linguagem. O lexer não tem token para string, e um programa que os use é rejeitado com erro léxico ou sintático (veja `tests/escopo/`).
 * `default` dentro do `switch`: o lexer não tem token para ele, então `default` chega como `IDENT`.
-* Funções (definição e chamada), arrays (`LBRACKET`/`RBRACKET`), `COMMA` (várias declarações como `int a, b;`), operadores `++`, `--`, `+=` e afins.
+* Arrays (`LBRACKET`/`RBRACKET`), várias declarações na mesma linha (`int a, b;`), operadores `++`, `--`, `+=` e afins.
 * Declaração e inicialização de mais de uma variável por linha, e `case` com expressão no rótulo (só literal).
 * `int main() { ... }`: como não há funções, o programa é a própria lista de comandos.
 
@@ -132,7 +132,6 @@ Cada token com valor declara qual campo da `%union` ele usa:
 | `L_INT` | `ival` | `int` |
 | `L_FLOAT` | `dval` | `double` |
 | `L_CHAR` | `cval` | `char` |
-| `L_STRING` | `sval` | `char *` |
 | `IDENT` | `sval` | `char *` |
 
 Quando o lexer reconhece `42`, ele escreve `yylval.ival = 42;` e devolve `L_INT`. O parser lê o valor de volta por `$1` na regra (por exemplo `L_INT { $$ = new_num_node($1); }`). O lexer **não declara** a `%union`: ele inclui `build/parser.tab.h`, onde o Bison a gera, e assim os dois sempre concordam sobre os tipos. Só no modo isolado (`make lexer_exe`) o lexer declara a própria `yylval`.
