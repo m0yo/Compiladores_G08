@@ -6,6 +6,9 @@
 #include "ast.h"
 #include "tabela_simbolos.h"
 
+//linha atual do lexer (definida em lexer.l; test_main.c define a sua)
+extern int linha_erro;
+
 //aloca um no com tipo definido
 static ASTNode *alloc_node(TipoNo tipo) {
     ASTNode *node = (ASTNode *)malloc(sizeof(ASTNode));
@@ -15,6 +18,7 @@ static ASTNode *alloc_node(TipoNo tipo) {
     }
     node->tipo = tipo;
     node->next = NULL;
+    node->linha = linha_erro;
     return node;
 }
 

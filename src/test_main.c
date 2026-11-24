@@ -5,6 +5,8 @@
 #include "ast.h"
 #include "tabela_simbolos.h"
 
+int linha_erro = 0; //ast.c usa a linha do lexer; nos testes nao ha lexer
+
 static int falhas = 0;
 #define CHECK(desc, cond) do { \
     printf("[%s] %s\n", (cond) ? "OK " : "FALHOU", desc); \

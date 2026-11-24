@@ -57,6 +57,7 @@ typedef struct{
 typedef struct ASTNode{
     TipoNo tipo;
     struct ASTNode *next; //proximo comando da lista
+    int linha;            //linha do codigo-fonte (0 se nao informada)
 
     union{
     struct { int value; } num;
