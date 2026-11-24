@@ -24,10 +24,10 @@ Este projeto implementa um interpretador, escrito em C, capaz de ler, analisar e
 | Etapa | Situação | Código |
 |---|---|---|
 | Lexer | Funcional (palavras-chave, operadores, literais, identificadores, comentários) | `src/lexer.l` |
-| Parser | Reconhece uma única expressão; faltam declarações, atribuições, comandos e ações semânticas | `src/parser.y` |
-| AST | Implementada e testada isoladamente; ainda não é construída pelo parser | `src/ast.c`, `src/ast.h` |
-| Tabela de símbolos | Implementada (`int`, `float`, `char`; escopo global) | `src/tabela_simbolos.c`, `src/tabela_simbolos.h` |
-| Avaliador | Executa expressões, declarações, atribuições, `if`, `while`, `for` e blocos; ainda não é chamado pelo parser | `src/ast.c` |
+| Parser | Reconhece declarações, atribuições, expressões e os comandos `if`/`else`, `while`, `do-while`, `for`, `switch`/`case`, `break`, `continue` e `return`; constrói a AST | `src/parser.y` |
+| AST | Construída pelo parser | `src/ast.c`, `src/ast.h` |
+| Tabela de símbolos | Implementada (`int`, `float`, `char`; escopo único, global) | `src/tabela_simbolos.c`, `src/tabela_simbolos.h` |
+| Avaliador | Executa todos os comandos acima; chamado pelo `main` do parser | `src/ast.c` |
 | Análise semântica | Não iniciada (hoje os erros são detectados durante a execução) | — |
 
 Para compilar e testar cada parte, veja [Como executar](como_executar.md).

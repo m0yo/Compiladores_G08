@@ -1,8 +1,8 @@
 # Analisador Sintático (Parser)
 
-O parser está em `src/parser.y` e é gerado pelo [Bison](https://www.gnu.org/software/bison/). Ele recebe os tokens do [analisador léxico](lexer.md) e **valida a sintaxe** do programa. Esta página é a referência do que ele reconhece hoje; a gramática em BNF está em [Gramática](gramatica.md).
+O parser está em `src/parser.y` e é gerado pelo [Bison](https://www.gnu.org/software/bison/). Ele recebe os tokens do [analisador léxico](lexer.md), **valida a sintaxe** do programa e **constrói a AST**, que o `main` executa. Esta página é a referência do que ele reconhece hoje; a gramática em BNF está em [Gramática](gramatica.md).
 
-> **Estado atual:** o parser só valida. Não há ações semânticas, então a AST não é construída, a tabela de símbolos não é usada e nada é executado. Essa ligação faz parte das etapas seguintes (veja [AST e Avaliador](ast.md) e [Tabela de Símbolos](tabela_simbolos.md)).
+> **Estado atual:** cada regra tem uma ação semântica que cria o nó correspondente da AST (seção 5). Depois do `yyparse()`, o `main` executa a árvore com `eval_ast` (veja [AST e Avaliador](ast.md)).
 
 ---
 
@@ -90,10 +90,11 @@ Um arquivo de entrada completo, com todos esses comandos, está em `tests/teste_
 
 ## 4. O que ainda não está implementado
 
-O parser **aceita** a sintaxe abaixo, mas ela só será checada ou executada nas próximas etapas:
+O parser **aceita** a sintaxe abaixo; o comportamento é decidido na execução, não na análise sintática:
 
-* `break` e `continue` fora de um laço, e `return` fora de função, **não** dão erro sintático. A verificação fica para a análise semântica.
-* `switch` sem `case` é aceito (`switch (x) { }`).
+* `break` ou `continue` fora de um laço (ou de um `switch`, no caso do `break`) **não** dão erro sintático; o erro aparece ao executar (`Erro: 'break' fora de laço ou switch`). Uma análise semântica separada ainda não existe.
+* `return` no nível do programa encerra a execução, como o `return` do `main` em C (seção 6).
+* `switch` sem `case` é aceito (`switch (x) { }`) e não faz nada.
 
 O parser **não reconhece**:
 
@@ -101,9 +102,9 @@ O parser **não reconhece**:
 * `default` dentro do `switch`: o lexer não tem token para ele, então `default` chega como `IDENT`.
 * Arrays (`LBRACKET`/`RBRACKET`), várias declarações na mesma linha (`int a, b;`), operadores `++`, `--`, `+=` e afins.
 * Declaração e inicialização de mais de uma variável por linha, e `case` com expressão no rótulo (só literal).
-* Construção da AST e uso da tabela de símbolos.
+* `int main() { ... }`: como não há funções, o programa é a própria lista de comandos.
 
-Além disso, a tabela de símbolos hoje só conhece `int`, `float` e `char`; `T_DOUBLE` e `T_LONG` são aceitos pelo parser, mas ainda não têm suporte no avaliador.
+Além disso, a tabela de símbolos hoje só conhece `int`, `float` e `char`; por isso o parser trata `long` como `int` e `double` como `float`.
 
 ---
 
@@ -117,8 +118,12 @@ O lexer e o parser trocam valores por uma variável global, `yylval`, cujo tipo 
     double dval;
     char cval;
     char *sval;
+    ASTNode *node;   /* nós da AST montados pelas regras */
+    SymType tipo;    /* resultado da regra "tipo" */
 }
 ```
+
+Como a `%union` usa `ASTNode` e `SymType`, o `parser.y` inclui `ast.h` num bloco `%code requires`, que o Bison copia para o `parser.tab.h`. Assim o lexer, que inclui esse cabeçalho, também enxerga os tipos.
 
 Cada token com valor declara qual campo da `%union` ele usa:
 
@@ -129,7 +134,29 @@ Cada token com valor declara qual campo da `%union` ele usa:
 | `L_CHAR` | `cval` | `char` |
 | `IDENT` | `sval` | `char *` |
 
-Quando o lexer reconhece `42`, ele escreve `yylval.ival = 42;` e devolve `L_INT`. O parser lê o valor de volta por `$1` na regra (nas regras atuais ainda não há ações, então ninguém lê). O lexer **não declara** a `%union`: ele inclui `build/parser.tab.h`, onde o Bison a gera, e assim os dois sempre concordam sobre os tipos. Só no modo isolado (`make lexer_exe`) o lexer declara a própria `yylval`.
+Quando o lexer reconhece `42`, ele escreve `yylval.ival = 42;` e devolve `L_INT`. O parser lê o valor de volta por `$1` na regra (por exemplo `L_INT { $$ = new_num_node($1); }`). O lexer **não declara** a `%union`: ele inclui `build/parser.tab.h`, onde o Bison a gera, e assim os dois sempre concordam sobre os tipos. Só no modo isolado (`make lexer_exe`) o lexer declara a própria `yylval`.
+
+---
+
+### Ações semânticas (construção da AST)
+
+Cada regra devolve em `$$` um nó da AST (`%type <node>`). As principais:
+
+| Regra | Nó criado |
+|---|---|
+| `L_INT` / `L_FLOAT` / `L_CHAR` / `IDENT` | `new_num_node` / `new_float_node` / `new_char_node` / `new_id_node` |
+| `expressao op expressao` | `new_binop_node(op, $1, $3)`; o token vira o código do operador (`R_LE` → `OP_LEQ`, `DM_AND` → `'&'` etc.) |
+| `- expressao` / `! expressao` | `new_unaryop_node` |
+| `expressao ;` | `new_expr_stmt_node` |
+| `atribuicao` | `new_assign_node` |
+| `declaracao` | `new_decl_node` (`long` → `TYPE_INT`, `double` → `TYPE_FLOAT`) |
+| `bloco` | `new_block_node` |
+| `if` / `if-else` | `new_if_stmt_node` |
+| `while` / `do-while` / `for` | `new_while_stmt_node` / `new_do_while_node` / `new_for_stmt_node` |
+| `switch` / `case` | `new_switch_node` / `new_case_node` (o rótulo é um `int`; um `char` vira o seu código) |
+| `break` / `continue` / `return` | `new_break_node` / `new_continue_node` / `new_return_node` |
+
+Listas (`programa`, `lista_comandos`, `lista_casos`) são encadeadas pelo campo `next` com a função auxiliar `anexar`. Os nomes vindos do lexer (`IDENT`, em `sval` alocado com `malloc`) são liberados com `free` logo depois de criar o nó, porque os construtores fazem `strdup`.
 
 ---
 
@@ -138,10 +165,18 @@ Quando o lexer reconhece `42`, ele escreve `yylval.ival = 42;` e devolve `L_INT`
 O `Makefile` faz tudo. A ordem importa: o Bison roda primeiro, porque o Flex precisa do `parser.tab.h`.
 
 ```bash
-make                 # gera build/parser.tab.{c,h} (Bison), build/lex.yy.c (Flex) e o parser_exe
-./parser_exe < tests/teste_parser.txt
-echo "saída: $?"     # 0 = sintaxe correta
+make                              # gera build/parser.tab.{c,h} (Bison), build/lex.yy.c (Flex) e o parser_exe
+./parser_exe tests/teste_parser.txt
+./parser_exe -a tests/teste_parser.txt   # imprime a AST antes de executar
 ```
+
+O `parser_exe` aceita `[-a] [arquivo]`; sem arquivo, lê a entrada padrão. Depois do `yyparse()`, o `main` envolve a lista de comandos num `AST_BLOCK`, executa com `eval_ast` e libera a árvore com `free_ast`.
+
+Código de saída:
+
+* `1` em erro sintático ou de execução (variável não declarada, divisão por zero, `break`/`continue` fora de laço);
+* o valor de `expr` se o programa executar `return expr;` (como o `main` de um programa C), também impresso como `Programa retornou: N`;
+* `0` nos demais casos.
 
 O comando que o `Makefile` usa para o Bison é:
 
@@ -158,10 +193,10 @@ Pré-requisito: Bison 3.0 ou superior, por causa do `%precedence`. Veja também 
 Quando a entrada não casa com a gramática, o Bison chama `yyerror`, que imprime em `stderr`:
 
 ```
-Erro sintático: syntax error
+Erro sintático na linha 3: syntax error
 ```
 
-e o programa termina com código de saída **1** (aceito = **0**). A mensagem ainda **não informa a linha**: isso é o objetivo da issue de tratamento de erros sintáticos (#15).
+e o programa termina com código de saída **1**, sem executar nada. A linha vem do contador `linha_erro` do lexer. Mensagens mais detalhadas e recuperação de erros continuam como objetivo da issue de tratamento de erros sintáticos (#15).
 
 Exemplos:
 
@@ -169,7 +204,7 @@ Exemplos:
 echo 'x = 1'     | ./parser_exe   # falta o ';'        -> Erro sintático, saída 1
 echo 'int x = ;' | ./parser_exe   # falta a expressão  -> Erro sintático, saída 1
 echo 'else x = 1;' | ./parser_exe # else sem if        -> Erro sintático, saída 1
-echo 'int x = 1;' | ./parser_exe  # válido              -> sem saída, código 0
+echo 'int x = 1;' | ./parser_exe  # válido              -> "Declarado: x : int = 1", código 0
 ```
 
 ---
