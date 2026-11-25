@@ -46,12 +46,46 @@ $(TEST_AST): src/test_main.c $(C_SRCS) src/ast.h src/tabela_simbolos.h | $(BUILD
 	$(CC) $(CFLAGS) -o $@ src/test_main.c $(C_SRCS) -lm
 
 test: $(EXEC) $(TEST_AST)
+	@echo "=== Rodando testes unitários da AST ==="
 	@./$(TEST_AST) > /dev/null && echo "[OK ] testes unitários da AST" || { echo "[FALHOU] testes unitários da AST"; exit 1; }
-	@falhas=0; for f in tests/programas/*.c; do \
-		esp="$${f%.c}.esperado"; \
-		if ./$(EXEC) "$$f" 2>&1 | diff -u "$$esp" - > /dev/null; then echo "[OK ] $$f"; \
-		else echo "[FALHOU] $$f"; ./$(EXEC) "$$f" 2>&1 | diff -u "$$esp" -; falhas=1; fi; \
-	done; exit $$falhas
+	
+	@echo "\n=== Rodando testes de escopo / válidos ==="
+	@falhas=0; for f in tests/escopo/*.txt tests/programas/*; do \
+		[ -e "$$f" ] || continue; \
+		[ -d "$$f" ] && continue; \
+		esp="$${f%.*}.esperado"; \
+		if ./$(EXEC) "$$f" > /dev/null 2>&1; then \
+			if [ -f "$$esp" ]; then \
+				if ./$(EXEC) "$$f" 2>&1 | diff -u "$$esp" - > /dev/null; then echo "[OK ] $$f"; \
+				else echo "[FALHOU] $$f (saída diferente do esperado)"; ./$(EXEC) "$$f" 2>&1 | diff -u "$$esp" -; falhas=1; fi; \
+			else \
+				echo "[OK ] $$f"; \
+			fi; \
+		else \
+			echo "[FALHOU] $$f (esperado sucesso, mas falhou)"; falhas=1; \
+		fi; \
+	done; \
+	\
+	echo "\n=== Rodando testes de erro (devem falhar) ==="; \
+	for f in tests/erros/*; do \
+		[ -e "$$f" ] || continue; \
+		[ -d "$$f" ] && continue; \
+		esp="$${f%.*}.esperado"; \
+		./$(EXEC) "$$f" > /dev/null 2>&1; \
+		status=$$?; \
+		if [ $$status -eq 0 ]; then \
+			echo "[FALHOU] $$f (esperava erro, mas passou com sucesso)"; \
+			falhas=1; \
+		else \
+			if [ -f "$$esp" ]; then \
+				if ./$(EXEC) "$$f" 2>&1 | diff -u "$$esp" - > /dev/null; then echo "[OK ] $$f (rejeitado corretamente)"; \
+				else echo "[FALHOU] $$f (erro ocorreu, mas stdout/stderr difere do .esperado)"; ./$(EXEC) "$$f" 2>&1 | diff -u "$$esp" -; falhas=1; fi; \
+			else \
+				echo "[OK ] $$f (rejeitado corretamente)"; \
+			fi; \
+		fi; \
+	done; \
+	exit $$falhas
 
 clean:
 	rm -rf $(EXEC) $(LEXER_EXEC) $(BUILD_DIR)
