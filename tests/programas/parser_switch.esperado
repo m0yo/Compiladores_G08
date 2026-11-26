@@ -1,0 +1,4 @@
+Declarado: r : int = 0
+Declarado: op : int = 2
+int r = 20
+int r = 23
