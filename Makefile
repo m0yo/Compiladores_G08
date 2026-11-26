@@ -56,7 +56,6 @@ test: $(EXEC) $(TEST_AST)
 		if echo "$$f" | grep -q "\.esperado$$"; then continue; fi; \
 		esp="$${f%.*}.esperado"; \
 		if [ -f "$$esp" ]; then \
-			# Executa o interpretador e compara o resultado com o .esperado, ignorando o exit code
 			if ./$(EXEC) < "$$f" 2>&1 | diff -u "$$esp" - > /dev/null; then \
 				echo "[OK ] $$f"; \
 			else \
@@ -65,7 +64,6 @@ test: $(EXEC) $(TEST_AST)
 				falhas=1; \
 			fi; \
 		else \
-			# Se não tem .esperado, apenas roda para ver se executa
 			./$(EXEC) < "$$f" > /dev/null 2>&1; \
 			echo "[OK ] $$f"; \
 		fi; \
