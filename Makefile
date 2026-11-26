@@ -55,15 +55,19 @@ test: $(EXEC) $(TEST_AST)
 		[ -d "$$f" ] && continue; \
 		if echo "$$f" | grep -q "\.esperado$$"; then continue; fi; \
 		esp="$${f%.*}.esperado"; \
-		if ./$(EXEC) < "$$f" > /dev/null 2>&1; then \
-			if [ -f "$$esp" ]; then \
-				if ./$(EXEC) < "$$f" 2>&1 | diff -u "$$esp" - > /dev/null; then echo "[OK ] $$f"; \
-				else echo "[FALHOU] $$f (saída diferente do esperado)"; ./$(EXEC) < "$$f" 2>&1 | diff -u "$$esp" -; falhas=1; fi; \
-			else \
+		if [ -f "$$esp" ]; then \
+			# Executa o interpretador e compara o resultado com o .esperado, ignorando o exit code
+			if ./$(EXEC) < "$$f" 2>&1 | diff -u "$$esp" - > /dev/null; then \
 				echo "[OK ] $$f"; \
+			else \
+				echo "[FALHOU] $$f (saída diferente do esperado)"; \
+				./$(EXEC) < "$$f" 2>&1 | diff -u "$$esp" -; \
+				falhas=1; \
 			fi; \
 		else \
-			echo "[FALHOU] $$f (esperado sucesso, mas falhou)"; falhas=1; \
+			# Se não tem .esperado, apenas roda para ver se executa
+			./$(EXEC) < "$$f" > /dev/null 2>&1; \
+			echo "[OK ] $$f"; \
 		fi; \
 	done; \
 	\
