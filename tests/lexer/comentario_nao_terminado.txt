@@ -1,0 +1,3 @@
+int a = 1;
+/* este comentario nunca fecha
+int b = 2;

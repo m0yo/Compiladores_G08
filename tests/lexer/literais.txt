@@ -1,0 +1,5 @@
+// inteiros, floats, caracteres e identificadores
+0 7 42 1000
+3.14 0.5 12.3456
+'a' 'Z' '0' '\n' '\t' '\'' '\\'
+x _y z9 contador_total

@@ -1,0 +1,4 @@
+// caracteres que nao existem na linguagem: erro lexico e a leitura continua
+int x = 3 @ 4;
+y = # 2;
+z = $;
