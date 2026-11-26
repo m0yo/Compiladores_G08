@@ -94,4 +94,15 @@ test: $(EXEC) $(TEST_AST)
 clean:
 	rm -rf $(EXEC) $(LEXER_EXEC) $(BUILD_DIR)
 
-.PHONY: all clean test
+.PHONY: all clean test test_lexer
+
+# Testes do scanner: tests/lexer/*.txt passam pelo lexer isolado e a saida (stdout e stderr)
+# e comparada com o .esperado. O codigo numerico do token e removido da comparacao, para que
+# adicionar um token novo no parser nao mude os codigos dos demais e quebre os casos.
+test_lexer: $(LEXER_EXEC)
+	@echo "=== Rodando testes do scanner ==="
+	@falhas=0; for f in tests/lexer/*.txt; do \
+		esp="$${f%.txt}.esperado"; \
+		if ./$(LEXER_EXEC) < "$$f" 2>&1 | sed 's/^Token: [0-9]* | //' | diff -u "$$esp" - > /dev/null; then echo "[OK ] $$f"; \
+		else echo "[FALHOU] $$f"; ./$(LEXER_EXEC) < "$$f" 2>&1 | sed 's/^Token: [0-9]* | //' | diff -u "$$esp" -; falhas=1; fi; \
+	done; exit $$falhas
