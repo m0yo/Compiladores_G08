@@ -28,7 +28,7 @@ Este projeto implementa um interpretador, escrito em C, capaz de ler, analisar e
 | AST | Construída pelo parser | `src/ast.c`, `src/ast.h` |
 | Tabela de símbolos | Implementada (`int`, `float`, `char`; escopos aninhados de bloco, `for` e `switch`) | `src/tabela_simbolos.c`, `src/tabela_simbolos.h` |
 | Avaliador | Executa todos os comandos acima; chamado pelo `main` do parser | `src/ast.c` |
-| Análise semântica | Não iniciada (hoje os erros são detectados durante a execução) | — |
+| Análise semântica | Roda antes da execução: variável não declarada ou redeclarada, `break`/`continue` fora de laço, `case`/`default` repetido, `%` com `float`; avisos de conversão, variável sem valor e divisão por zero literal | `src/semantica.c`, `src/semantica.h` |
 
 Para compilar e testar cada parte, veja [Como executar](como_executar.md).
 
