@@ -7,6 +7,8 @@
 #include "parser.tab.h"
 
 int linha_erro = 1;
+int erros_lexicos = 0;          /* o main nao executa o programa se for > 0 */
+static int linha_comentario = 0; /* linha onde abriu o comentario de bloco */
 
 #ifdef LEXER_STANDALONE
 YYSTYPE yylval;
@@ -105,6 +107,7 @@ static char decod_char(const char *text){
 }
 
 "/*" {
+    linha_comentario = linha_erro;
     BEGIN(COMENTARIO);
 }
 
@@ -127,9 +130,11 @@ static char decod_char(const char *text){
 
 <COMENTARIO><<EOF>> {
     fprintf(stderr,
-        "erro na linha %d: comentario de bloco nao terminado\n",
-        linha_erro
+        "Erro léxico na linha %d: comentário de bloco aberto e não fechado\n",
+        linha_comentario
     );
+    erros_lexicos++;
+    BEGIN(INITIAL);
     return 0;
 }
 
@@ -167,6 +172,7 @@ static char decod_char(const char *text){
     /* caractere nao conhecido */
 . {
     fprintf(stderr, "erro na linha %d: '%s'\n", linha_erro, yytext);
+    erros_lexicos++;
     return yytext[0];   /* token inexistente na gramatica: o parser rejeita a entrada */
 }
 

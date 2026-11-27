@@ -55,7 +55,8 @@ Em literais de caractere, o lexer traduz `\n`, `\t`, `\r`, `\0`, `\\` e `\'` par
 
 - `// ...` vai até o fim da linha e é descartado.
 - `/* ... */` pode ocupar várias linhas e é lido no estado exclusivo `COMENTARIO`, que também conta as quebras de linha. Comentários de bloco **não** podem ser aninhados.
-- Se o arquivo terminar com um comentário de bloco aberto, o lexer imprime `erro na linha N: comentario de bloco nao terminado` em `stderr` e encerra a análise.
+- Se o arquivo terminar com um comentário de bloco aberto, o lexer imprime `Erro léxico na linha N: comentário de bloco aberto e não fechado` em `stderr` (N é a linha do `/*`) e encerra a análise.
+- Cada erro léxico (comentário não fechado ou caractere desconhecido) incrementa o contador global `erros_lexicos`. Depois do `yyparse()`, o `main` do parser consulta esse contador: se ele for maior que zero, o programa **não é executado** e o código de saída é `1`. Antes, um comentário não fechado no fim do arquivo era só avisado e o programa rodava normalmente.
 
 Nenhum comentário gera token.
 

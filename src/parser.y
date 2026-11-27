@@ -23,6 +23,7 @@ void yyerror(const char *s);
 
 extern FILE *yyin;
 extern int linha_erro;
+extern int erros_lexicos;
 
 /* raiz da AST: lista encadeada (via ->next) com os comandos do programa */
 static ASTNode *raiz = NULL;
@@ -308,6 +309,13 @@ int main(int argc, char **argv) {
         return 1;
 
     ASTNode *programa = new_block_node(raiz);
+
+    /* erro léxico (ex.: comentário de bloco não fechado): não executa */
+    if (erros_lexicos > 0) {
+        free_ast(programa);
+        if (arquivo) fclose(yyin);
+        return 1;
+    }
 
     /* análise semântica: se houver erro, o programa não é executado */
     if (analisar_semantica(programa) > 0) {
