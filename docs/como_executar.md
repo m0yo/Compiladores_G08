@@ -55,10 +55,13 @@ Para cada token é impresso o código, o lexema e a linha. Veja o formato e os d
 make test
 ```
 
-O alvo roda duas coisas:
+O alvo roda três testes principais:
 
 1. **Testes unitários** (`src/test_main.c`, compilado em `build/test_ast`): tabela de símbolos, expressões, declarações, atribuições, `if/else`, `while`, `for` e `char`, montando a AST à mão.
-2. **Testes de ponta a ponta** (`tests/programas/*.c`): cada programa é executado pelo `parser_exe` e a saída (`stdout` e `stderr`) é comparada com o arquivo `.esperado` de mesmo nome. Para adicionar um caso, crie `nome.c`, confira a saída e salve-a com `./parser_exe tests/programas/nome.c > tests/programas/nome.esperado 2>&1`.
+2. **Testes de ponta a ponta e escopo** (`tests/programas/*.c` e `tests/escopo/*.txt`): cada programa válido é executado pelo `parser_exe` e a saída (`stdout` e `stderr`) é comparada com o arquivo `.esperado` de mesmo nome. 
+3. **Testes de erro** (`tests/erros/*.txt`): valida códigos que devem obrigatoriamente ser rejeitados, garantindo que o interpretador barre erros léxicos e sintáticos corretamente.
+
+Para adicionar um caso de programa válido, crie `nome.c` em `tests/programas`, confira a saída e salve-a com `./parser_exe tests/programas/nome.c > tests/programas/nome.esperado 2>&1`.
 
 Para rodar só os testes unitários e ver a saída completa: `make build/test_ast && ./build/test_ast`.
 
