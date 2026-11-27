@@ -10,6 +10,7 @@ Lexema: 'for' | Linha: 3
 Lexema: 'do' | Linha: 3
 Lexema: 'switch' | Linha: 3
 Lexema: 'case' | Linha: 3
+Lexema: 'default' | Linha: 3
 Lexema: 'break' | Linha: 3
 Lexema: 'continue' | Linha: 3
 Lexema: 'return' | Linha: 3
@@ -26,6 +27,7 @@ Lexema: '+' | Linha: 5
 Lexema: '-' | Linha: 5
 Lexema: '*' | Linha: 5
 Lexema: '/' | Linha: 5
+Lexema: '%' | Linha: 5
 Lexema: '=' | Linha: 5
 Lexema: '{' | Linha: 6
 Lexema: '}' | Linha: 6

@@ -1,6 +1,6 @@
 // palavras-chave, tipos, operadores e delimitadores
 int float char long double
-if else while for do switch case break continue return
+if else while for do switch case default break continue return
 == != < > <= >= && || !
-+ - * / =
++ - * / % =
 { } [ ] ( ) : ;
