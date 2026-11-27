@@ -1,6 +1,6 @@
-Erro léxico na linha 2: comentário de bloco aberto e não fechado
 Lexema: 'int' | Linha: 1
 Lexema: 'a' | Linha: 1
 Lexema: '=' | Linha: 1
 Lexema: '1' | Linha: 1
 Lexema: ';' | Linha: 1
+Erro léxico na linha 2: comentário de bloco aberto e não fechado
