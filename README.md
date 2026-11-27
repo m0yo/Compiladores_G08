@@ -22,7 +22,7 @@ Este projeto é um **interpretador para a linguagem C, implementado na própria 
 - ⬜ Saída de dados na linguagem (`printf`) e `int main() { ... }`
 - ⬜ Verificação de tipos mais completa (a análise semântica só avisa sobre conversões `float` → `int`/`char`)
 - ⬜ Tipos próprios para `long`/`double`
-- ⬜ Arrays e ponteiros (funções, strings e structs estão fora do escopo; veja `tests/escopo/`)
+- ⬜ Arrays e ponteiros (funções, strings e structs estão fora do escopo; veja `tests/erros/`)
 
 > Atualize este checklist conforme o projeto avança — é a forma mais rápida de qualquer pessoa entender "onde estamos" sem ler código.
 

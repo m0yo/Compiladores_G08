@@ -99,7 +99,7 @@ O parser **aceita** a sintaxe abaixo; o comportamento é decidido na execução,
 
 O parser **não reconhece**:
 
-* Strings, funções e structs: fora do escopo da linguagem. O lexer não tem token para string, e um programa que os use é rejeitado com erro léxico ou sintático (veja `tests/escopo/`).
+* Strings, funções e structs: fora do escopo da linguagem. O lexer não tem token para string, e um programa que os use é rejeitado com erro léxico ou sintático (veja `tests/erros/`).
 * Arrays (`LBRACKET`/`RBRACKET`), várias declarações na mesma linha (`int a, b;`), operadores `++`, `--`, `+=` e afins.
 * Declaração e inicialização de mais de uma variável por linha, e `case` com expressão no rótulo (só literal).
 * `int main() { ... }`: como não há funções, o programa é a própria lista de comandos.

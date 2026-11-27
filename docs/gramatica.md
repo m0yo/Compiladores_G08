@@ -269,4 +269,4 @@ Para manter o interpretador focado no aprendizado dos conceitos fundamentais de 
 * Sem suporte a definição nem chamada de funções.
 * Sem importação de bibliotecas externas ou uso de funções de cabeçalhos complexos do C padrão.
 
-Também ficam fora, por enquanto, arrays. Programas que usam strings, funções ou structs são rejeitados com erro léxico ou sintático (veja `tests/escopo/`). Já `do-while`, `switch/case/default`, `break`, `continue` e `return` são reconhecidos pelo parser e executados pelo avaliador.
+Também ficam fora, por enquanto, arrays. Programas que usam strings, funções ou structs são rejeitados com erro léxico ou sintático (veja `tests/erros/`). Já `do-while`, `switch/case/default`, `break`, `continue` e `return` são reconhecidos pelo parser e executados pelo avaliador.
