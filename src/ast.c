@@ -487,6 +487,7 @@ resultado eval_ast(ASTNode *node){
 
     //for
     case AST_FOR: {
+        entrar_escopo(); //a variavel declarada no init so existe dentro do for
         if(node->data.for_stmt.init)
             eval_ast(node->data.for_stmt.init);
         //loop que testa condicao, executa corpo e passo
@@ -500,6 +501,7 @@ resultado eval_ast(ASTNode *node){
             if(node->data.for_stmt.step)
                 eval_ast(node->data.for_stmt.step);
         }
+        sair_escopo();
         break;
     }
 
@@ -516,8 +518,10 @@ resultado eval_ast(ASTNode *node){
             }
         }
         if(!c) c = padrao;
+        entrar_escopo(); //o corpo do switch e um bloco
         for(; c && controle_fluxo == CTRL_NORMAL; c = c->next)
             exec_list(c->data.case_stmt.stmts);
+        sair_escopo();
         if(controle_fluxo == CTRL_BREAK) //break sai do switch; continue/return seguem
             controle_fluxo = CTRL_NORMAL;
         break;
@@ -546,7 +550,9 @@ resultado eval_ast(ASTNode *node){
 
     //bloco de comandos
     case AST_BLOCK: {
+        entrar_escopo();
         exec_list(node->data.block.stmts);
+        sair_escopo(); //as variaveis do bloco deixam de existir
         break;
     }
 

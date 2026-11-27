@@ -11,8 +11,9 @@
  - uma variavel pode ser usada sem valor (nenhuma atribuicao antes no texto)
  - ha divisao por zero com divisor literal
 
- O escopo e unico (global), como no avaliador: uma variavel declarada
- dentro de um bloco continua visivel depois dele.
+ Os escopos espelham os do avaliador: cada bloco { }, cada for e cada
+ corpo de switch abre um escopo. Uma variavel de um escopo interno pode
+ sombrear outra de fora, e deixa de existir quando o escopo fecha.
 */
 
 #include <stdio.h>
@@ -25,12 +26,14 @@ typedef struct {
     char *nome;
     SymType tipo;
     int com_valor;  //1 se houve inicializacao ou atribuicao antes, no texto
+    int nivel;      //nivel de escopo da declaracao
 } Declarada;
 
 static Declarada *vars = NULL;
 static int n_vars = 0;
 static int cap_vars = 0;
 
+static int nivel = 0;      //nivel de escopo atual
 static int n_erros = 0;
 static int prof_laco = 0;    //quantos lacos (while/do/for) envolvem o ponto atual
 static int prof_switch = 0;  //quantos switch envolvem o ponto atual
@@ -59,10 +62,29 @@ static void aviso(const ASTNode *no, const char *fmt, ...) {
     va_end(ap);
 }
 
+//procura da declaracao mais recente (mais interna) para a mais antiga
 static int procurar(const char *nome) {
-    for (int i = 0; i < n_vars; i++)
+    for (int i = n_vars - 1; i >= 0; i--)
         if (strcmp(vars[i].nome, nome) == 0) return i;
     return -1;
+}
+
+static int declarada_no_escopo_atual(const char *nome) {
+    int i = procurar(nome);
+    return i >= 0 && vars[i].nivel == nivel;
+}
+
+static void entrar(void) {
+    nivel++;
+}
+
+//as declaracoes do escopo atual sao as ultimas do vetor
+static void sair(void) {
+    while (n_vars > 0 && vars[n_vars - 1].nivel == nivel) {
+        n_vars--;
+        free(vars[n_vars].nome);
+    }
+    nivel--;
 }
 
 static void declarar(const char *nome, SymType tipo, int com_valor) {
@@ -77,6 +99,7 @@ static void declarar(const char *nome, SymType tipo, int com_valor) {
     vars[n_vars].nome = strdup(nome);
     vars[n_vars].tipo = tipo;
     vars[n_vars].com_valor = com_valor;
+    vars[n_vars].nivel = nivel;
     n_vars++;
 }
 
@@ -85,7 +108,7 @@ static void limpar(void) {
     free(vars);
     vars = NULL;
     n_vars = cap_vars = 0;
-    n_erros = prof_laco = prof_switch = 0;
+    n_erros = prof_laco = prof_switch = nivel = 0;
 }
 
 //float para int/char perde a parte decimal
@@ -170,6 +193,7 @@ static void visitar_switch(const ASTNode *no) {
     int n_default = 0;
 
     prof_switch++;
+    entrar(); //o corpo do switch e um bloco
     for (const ASTNode *c = no->data.switch_stmt.cases; c; c = c->next) {
         if (c->data.case_stmt.is_default) {
             if (++n_default > 1)
@@ -186,6 +210,7 @@ static void visitar_switch(const ASTNode *no) {
             vistos[n_vistos++] = c->data.case_stmt.value;
         visitar(c->data.case_stmt.stmts);
     }
+    sair();
     prof_switch--;
     free(vistos);
 }
@@ -196,7 +221,7 @@ static void visitar(const ASTNode *no) {
         switch (no->tipo) {
         case AST_DECL: {
             SymType t = tipo_expr(no->data.decl.init);
-            if (procurar(no->data.decl.name) >= 0) {
+            if (declarada_no_escopo_atual(no->data.decl.name)) {
                 erro(no, "variável '%s' já declarada", no->data.decl.name);
             } else {
                 declarar(no->data.decl.name, no->data.decl.type, no->data.decl.init != NULL);
@@ -243,12 +268,14 @@ static void visitar(const ASTNode *no) {
             break;
 
         case AST_FOR:
+            entrar(); //a variavel do init so existe dentro do for
             visitar(no->data.for_stmt.init);
             tipo_expr(no->data.for_stmt.cond);
             prof_laco++;
             visitar(no->data.for_stmt.body);
             visitar(no->data.for_stmt.step);
             prof_laco--;
+            sair();
             break;
 
         case AST_SWITCH:
@@ -270,7 +297,9 @@ static void visitar(const ASTNode *no) {
             break;
 
         case AST_BLOCK:
+            entrar();
             visitar(no->data.block.stmts);
+            sair();
             break;
 
         default:

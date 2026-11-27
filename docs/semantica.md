@@ -17,7 +17,7 @@ Sem essa fase, os mesmos problemas só apareciam durante a execução, depois de
 | Verificação | Tipo | Mensagem |
 |---|---|---|
 | Variável usada ou atribuída sem declaração | erro | `variável 'x' não declarada` |
-| Variável declarada duas vezes | erro | `variável 'x' já declarada` |
+| Variável declarada duas vezes no mesmo escopo | erro | `variável 'x' já declarada` |
 | `break` fora de laço e de `switch` | erro | `'break' fora de laço ou switch` |
 | `continue` fora de laço (dentro de `switch` não basta) | erro | `'continue' fora de laço` |
 | Valor repetido em `case` do mesmo `switch` | erro | `valor 'case N' repetido no switch` |
@@ -59,7 +59,7 @@ Erro semântico na linha 5: 'continue' fora de laço
 
 * `analisar_semantica(programa)` devolve o número de erros. O `main` em `src/parser.y` a chama logo depois de montar a AST.
 * A função mantém uma lista própria de variáveis declaradas (nome e tipo), **separada** da tabela de símbolos do avaliador, que só existe durante a execução.
-* O **escopo é único (global)**, como no avaliador: uma variável declarada dentro de um bloco continua visível depois dele.
+* Os **escopos** espelham os do avaliador: cada bloco, cada `for` e cada corpo de `switch` abre um escopo. Uma variável de dentro pode sombrear uma de fora (não é redeclaração) e deixa de existir quando o escopo fecha; usá-la depois é `variável não declarada`.
 * Para cada expressão ela calcula o tipo (`int`, `float` ou `char`), seguindo a mesma promoção do avaliador: se algum operando é `float`, o resultado é `float`; comparações e operadores lógicos dão `int`.
 * Dois contadores (`prof_laco` e `prof_switch`) dizem se o ponto atual está dentro de um laço ou de um `switch`, o que decide se `break` e `continue` são válidos.
 
@@ -73,7 +73,6 @@ Cada nó da AST guarda o campo `linha`, copiado da linha atual do lexer no momen
 
 * Valores só conhecidos em execução: `a / b` com `b` igual a zero continua dando `Erro: Divisão por zero!` durante a execução. Com divisor literal (`a / 0`), a análise só avisa; se a divisão for executada, o avaliador também para com esse erro.
 * O aviso de "sem valor" é simples: qualquer atribuição anterior no texto conta, mesmo dentro de um `if` ou laço que pode não executar.
-* Uso de uma variável declarada em um ramo que não executa (a análise é estática e o escopo é único).
 * `long` e `double` são tratados como `int` e `float` (a tabela de símbolos só tem esses tipos).
 * Funções, strings, structs e ponteiros não existem na linguagem (veja [Gramática](gramatica.md)).
 

@@ -201,7 +201,7 @@ Explicação das regras de `<comando>`:
 * **Condicional (`if` e `if-else`):** executa um comando se a expressão entre parênteses for verdadeira (diferente de zero) e, opcionalmente, outro comando se for falsa (`AST_IF`).
 * **Laço `while`:** repete um comando enquanto a condição for verdadeira (`AST_WHILE`).
 * **Laço `for`:** loop controlado por inicialização, condição e passo (`AST_FOR`).
-* **Bloco de comandos:** `LBRACE <lista-comandos> RBRACE` agrupa vários comandos entre chaves (`AST_BLOCK`). Na implementação atual o bloco **não** cria um novo escopo: a tabela de símbolos é única.
+* **Bloco de comandos:** `LBRACE <lista-comandos> RBRACE` agrupa vários comandos entre chaves (`AST_BLOCK`). O bloco cria um novo escopo: as variáveis declaradas dentro dele só existem até o `}`.
 
 ### 4.4 Componentes do `for`
 

@@ -107,6 +107,20 @@ int main(void) {
     CHECK("switch sem case correspondente começa no default: d == 110", buscar_simbolo("d")->value.intValue == 110);
     free_ast(t);
 
+    /* 12. escopos: x = 1 fora; dentro do bloco, x = 2 sombreia; ao sair, volta a 1 */
+    limpar_tabela();
+    v.intValue = 1; inserir_simbolo("x", TYPE_INT, v);
+    entrar_escopo();
+    CHECK("entrar_escopo aumenta o nivel", escopo_atual() == 1);
+    CHECK("x externo nao esta no escopo atual", buscar_simbolo_no_escopo_atual("x") == NULL);
+    v.intValue = 2; inserir_simbolo("x", TYPE_INT, v);
+    v.intValue = 5; inserir_simbolo("so_dentro", TYPE_INT, v);
+    CHECK("x interno sombreia o externo", buscar_simbolo("x")->value.intValue == 2);
+    sair_escopo();
+    CHECK("sair_escopo volta ao x externo", buscar_simbolo("x")->value.intValue == 1);
+    CHECK("variavel do bloco deixa de existir", buscar_simbolo("so_dentro") == NULL);
+    CHECK("sair_escopo diminui o nivel", escopo_atual() == 0);
+
     sym_print();
     limpar_tabela();
     printf("\n%s (%d falha(s))\n", falhas ? "HOUVE FALHAS" : "TODOS OS TESTES PASSARAM", falhas);

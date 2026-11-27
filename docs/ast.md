@@ -91,7 +91,7 @@ Listas de comandos (`next`, corpo de `while`/`for`, ramos do `if` e `AST_BLOCK`)
 | `break` | Sai do laço ou `switch` mais interno |
 | `continue` | Pula para a próxima volta do laço mais interno (no `for`, o `step` ainda é executado) |
 | `return` | Interrompe a execução e guarda o valor em `valor_retorno` |
-| Bloco | Executa a lista de comandos; **não cria um novo escopo** |
+| Bloco | Abre um escopo, executa a lista de comandos e fecha o escopo: as variáveis declaradas dentro dele deixam de existir. `for` e o corpo do `switch` também abrem escopo (veja [Tabela de Símbolos](tabela_simbolos.md#escopos)) |
 
 ### Controle de fluxo (`break`, `continue`, `return`)
 
@@ -126,7 +126,6 @@ Os erros abaixo imprimem a mensagem em `stderr` e **encerram o programa** com `e
 ### Pontos de atenção
 
 * Declarar de novo uma variável existente **não é erro**: `inserir_simbolo` só atualiza o valor e mantém o tipo original.
-* A tabela de símbolos é única e global: variáveis declaradas dentro de um bloco continuam visíveis depois dele.
 
 ## Visualização e memória
 

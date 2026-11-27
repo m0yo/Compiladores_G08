@@ -1,0 +1,15 @@
+Declarado: a : int = 1
+Declarado: a : int = 2
+int a = 12
+Declarado: b : int = 5
+int a = 2
+Declarado: i : int = 0
+int a = 2
+int i = 1
+int a = 3
+int i = 2
+int a = 5
+int i = 3
+Declarado: i : int = 100
+int a = 6
+Programa retornou: 106
