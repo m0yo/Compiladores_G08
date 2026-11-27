@@ -77,7 +77,7 @@ Listas de comandos (`next`, corpo de `while`/`for`, ramos do `if` e `AST_BLOCK`)
 | Identificador | Busca a variável na tabela de símbolos |
 | Aritmética | Se algum operando é `float`, o resultado é `float`; caso contrário é `int` (um `char` é promovido a `int`). Em `int` os operandos são convertidos com truncamento e `/` é divisão inteira |
 | Comparações e `==`, `!=` | Resultado `int`: `1` ou `0` |
-| `&&`, `\|\|` | Resultado `int` (`1` ou `0`). **Os dois lados são sempre avaliados** (não há curto-circuito) |
+| `&&`, `\|\|` | Resultado `int` (`1` ou `0`), **com curto-circuito** como em C: em `a && b`, `b` só é avaliado se `a` é verdadeiro; em `a \|\| b`, só se `a` é falso. Assim `a != 0 && 10 / a > 1` não divide por zero |
 | `-x` | Mantém o tipo do operando |
 | `!x` | Resultado `int` (`1` se `x` é zero) |
 | Atribuição | Avalia a expressão e converte o valor para o **tipo declarado** da variável (por exemplo `int b = 3.9` guarda `3`) |

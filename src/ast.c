@@ -276,6 +276,21 @@ resultado eval_ast(ASTNode *node){
         //operacao binaria
         case AST_BINARYOP: {
             resultado left = eval_ast(node->data.binaryop.left);
+
+            //curto-circuito (como em C): o lado direito de && so e avaliado
+            //se o esquerdo e verdadeiro, e o de || so se o esquerdo e falso
+            if(node->data.binaryop.op == '&' || node->data.binaryop.op == '|'){
+                int l = left.val != 0;
+                if(node->data.binaryop.op == '&' ? !l : l){
+                    res.val = (double)l;
+                }else{
+                    resultado right = eval_ast(node->data.binaryop.right);
+                    res.val = (double)(right.val != 0);
+                }
+                res.Type = TYPE_INT;
+                break;
+            }
+
             resultado right = eval_ast(node->data.binaryop.right);
             SymType rtype = promote_type(left.Type, right.Type);   
             
@@ -316,14 +331,6 @@ resultado eval_ast(ASTNode *node){
                     break;
 
                 //operadores logicos
-                case '&':
-                    res.val = (double)(left.val && right.val);
-                    res.Type = TYPE_INT;
-                    break;
-                case '|':
-                    res.val = (double)(left.val || right.val);
-                    res.Type = TYPE_INT;
-                    break;
                 
                 //operadores de igualdade
                 case OP_EQ:
