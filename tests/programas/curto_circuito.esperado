@@ -1,0 +1,7 @@
+Declarado: a : int = 0
+Declarado: b : int = 5
+Declarado: r : int = 0
+int r = 10
+Declarado: d : int = 1
+Declarado: e : int = 0
+Programa retornou: 1010

@@ -15,7 +15,7 @@ Todos os arquivos gerados ficam em `build/`; os executáveis ficam na raiz do pr
 | Comando | O que faz |
 |---|---|
 | `make` | Compila lexer e parser juntos e gera o executável `parser_exe` |
-| `make test` | Roda os testes unitários da AST e os programas de `tests/programas/` |
+| `make test` | Roda os testes unitários da AST e os programas de `tests/programas/` e `tests/semantica/` |
 | `make lexer_exe` | Compila só o lexer, em modo isolado, e gera o executável `lexer_exe` |
 | `make clean` | Remove `parser_exe`, `lexer_exe` e a pasta `build/` |
 
@@ -55,13 +55,13 @@ Para cada token é impresso o código, o lexema e a linha. Veja o formato e os d
 make test
 ```
 
-O alvo roda três testes principais:
+O alvo roda três grupos de testes:
 
-1. **Testes unitários** (`src/test_main.c`, compilado em `build/test_ast`): tabela de símbolos, expressões, declarações, atribuições, `if/else`, `while`, `for` e `char`, montando a AST à mão.
-2. **Testes de ponta a ponta e escopo** (`tests/programas/*.c` e `tests/escopo/*.txt`): cada programa válido é executado pelo `parser_exe` e a saída (`stdout` e `stderr`) é comparada com o arquivo `.esperado` de mesmo nome. 
-3. **Testes de erro** (`tests/erros/*.txt`): valida códigos que devem obrigatoriamente ser rejeitados, garantindo que o interpretador barre erros léxicos e sintáticos corretamente.
+1. **Testes unitários** (`src/test_main.c`, compilado em `build/test_ast`): tabela de símbolos (inclusive escopos), expressões, declarações, atribuições, `if/else`, `while`, `for`, `switch` com `default` e `char`, montando a AST à mão.
+2. **Programas comparados com a saída esperada** (`tests/programas/*` e `tests/semantica/*`, veja [Análise Semântica](semantica.md)): cada programa é executado pelo `parser_exe` e a saída (`stdout` e `stderr`) é comparada com o arquivo `.esperado` de mesmo nome. Os de `tests/semantica/` incluem programas com erros e avisos semânticos, e a comparação confere as mensagens.
+3. **Testes de erro** (`tests/erros/*`): programas que devem ser rejeitados (erro léxico ou sintático, como strings, funções, structs ou um comentário de bloco não fechado). O teste falha se o `parser_exe` terminar com código de saída `0`; se houver `.esperado`, a saída também é comparada.
 
-Para adicionar um caso de programa válido, crie `nome.c` em `tests/programas`, confira a saída e salve-a com `./parser_exe tests/programas/nome.c > tests/programas/nome.esperado 2>&1`.
+Para adicionar um caso, crie `nome.c` na pasta certa, confira a saída e salve-a com `./parser_exe tests/programas/nome.c > tests/programas/nome.esperado 2>&1`.
 
 Para rodar só os testes unitários e ver a saída completa: `make build/test_ast && ./build/test_ast`.
 

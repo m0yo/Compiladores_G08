@@ -16,12 +16,14 @@
 #include <stdlib.h>
 #include "ast.h"
 #include "tabela_simbolos.h"
+#include "semantica.h"
 
 int yylex(void);
 void yyerror(const char *s);
 
 extern FILE *yyin;
 extern int linha_erro;
+extern int erros_lexicos;
 
 /* raiz da AST: lista encadeada (via ->next) com os comandos do programa */
 static ASTNode *raiz = NULL;
@@ -64,6 +66,7 @@ static ASTNode *anexar(ASTNode *a, ASTNode *b) {
 %token F_DO
 %token F_SWITCH
 %token F_CASE
+%token F_DEFAULT
 %token F_BREAK
 %token F_CONTINUE
 %token F_RETURN
@@ -81,6 +84,7 @@ static ASTNode *anexar(ASTNode *a, ASTNode *b) {
 %token O_MINUS
 %token O_MULTI
 %token O_DIV
+%token O_MOD
 %token O_ASSIGN
 
 /* Operadores relacionais */
@@ -117,7 +121,7 @@ static ASTNode *anexar(ASTNode *a, ASTNode *b) {
 %left R_EQ R_NE
 %left R_LT R_GT R_LE R_GE
 %left O_PLUS O_MINUS
-%left O_MULTI O_DIV
+%left O_MULTI O_DIV O_MOD
 %precedence DM_NOT
 %precedence UMINUS
 
@@ -228,7 +232,10 @@ lista_casos:
     ;
 
 caso:
-      F_CASE rotulo COLON lista_comandos  { $$ = new_case_node($2, $4); }
+      F_CASE rotulo COLON { $<ival>$ = linha_erro; } lista_comandos
+                                { $$ = new_case_node($2, $5); $$->linha = $<ival>4; }
+    | F_DEFAULT COLON { $<ival>$ = linha_erro; } lista_comandos
+                                { $$ = new_default_node($4); $$->linha = $<ival>3; }
     ;
 
 rotulo:
@@ -241,6 +248,7 @@ expressao:
     | expressao O_MINUS expressao   { $$ = new_binop_node('-', $1, $3); }
     | expressao O_MULTI expressao   { $$ = new_binop_node('*', $1, $3); }
     | expressao O_DIV expressao     { $$ = new_binop_node('/', $1, $3); }
+    | expressao O_MOD expressao     { $$ = new_binop_node('%', $1, $3); }
 
     | O_MINUS expressao %prec UMINUS { $$ = new_unaryop_node('-', $2); }
 
@@ -301,6 +309,21 @@ int main(int argc, char **argv) {
         return 1;
 
     ASTNode *programa = new_block_node(raiz);
+
+    /* erro léxico (ex.: comentário de bloco não fechado): não executa */
+    if (erros_lexicos > 0) {
+        free_ast(programa);
+        if (arquivo) fclose(yyin);
+        return 1;
+    }
+
+    /* análise semântica: se houver erro, o programa não é executado */
+    if (analisar_semantica(programa) > 0) {
+        free_ast(programa);
+        limpar_tabela();
+        if (arquivo) fclose(yyin);
+        return 1;
+    }
 
     if (mostrar_ast) {
         printf("=== AST ===\n");

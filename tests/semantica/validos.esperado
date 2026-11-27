@@ -1,0 +1,13 @@
+Declarado: soma : int = 0
+Declarado: i : int = 0
+int soma = 0
+int i = 1
+int soma = 1
+int i = 2
+int i = 3
+int soma = 4
+int i = 4
+int soma = 8
+int i = 5
+int soma = 13
+int i = 6

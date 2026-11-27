@@ -30,7 +30,7 @@ Os campos das expressões e dos comandos são:
 | `AST_FOR` | `for_stmt.init`, `cond`, `step`, `body` | `new_for_stmt_node(init, cond, step, body)` |
 | `AST_DO_WHILE` | `while_stmt.body`, `cond` (mesmos campos do `while`) | `new_do_while_node(body, cond)` |
 | `AST_SWITCH` | `switch_stmt.expr`, `cases` (lista de `AST_CASE` via `next`) | `new_switch_node(expr, cases)` |
-| `AST_CASE` | `case_stmt.value` (`int`), `stmts` | `new_case_node(value, stmts)` |
+| `AST_CASE` | `case_stmt.value` (`int`), `is_default`, `stmts` | `new_case_node(value, stmts)` / `new_default_node(stmts)` |
 | `AST_BREAK` / `AST_CONTINUE` | — | `new_break_node()` / `new_continue_node()` |
 | `AST_RETURN` | `return_stmt.expr` (`NULL` em `return;`) | `new_return_node(expr)` |
 | `AST_BLOCK` | `block.stmts` (cabeça da lista de comandos) | `new_block_node(stmts)` |
@@ -47,6 +47,7 @@ O campo `op` guarda o próprio caractere para `+ - * / < > ! & |` e uma constant
 | `O_MINUS` | `'-'` (binário e unário) | `-` |
 | `O_MULTI` | `'*'` | `*` |
 | `O_DIV` | `'/'` | `/` |
+| `O_MOD` | `'%'` | `%` |
 | `DM_AND` | `'&'` | `&&` |
 | `DM_OR` | `'\|'` | `\|\|` |
 | `DM_NOT` | `'!'` | `!` |
@@ -57,7 +58,7 @@ O campo `op` guarda o próprio caractere para `+ - * / < > ! & |` e uma constant
 | `R_LE` | `OP_LEQ` | `<=` |
 | `R_GE` | `OP_GEQ` | `>=` |
 
-> Os códigos `OP_EQ`, `OP_NEQ`, `OP_LEQ` e `OP_GEQ` (256 a 259) **não são** os códigos de token do Bison, e os dois conjuntos se sobrepõem numericamente (por exemplo, `OP_LEQ` vale 258, o mesmo número de `T_INT`). Por isso as ações semânticas do parser traduzem explicitamente cada token para o seu operador. O módulo `%` não é implementado: o avaliador responde `Erro: Operador binário desconhecido`.
+> Os códigos `OP_EQ`, `OP_NEQ`, `OP_LEQ` e `OP_GEQ` (256 a 259) **não são** os códigos de token do Bison, e os dois conjuntos se sobrepõem numericamente (por exemplo, `OP_LEQ` vale 258, o mesmo número de `T_INT`). Por isso as ações semânticas do parser traduzem explicitamente cada token para o seu operador. O resto `%` só aceita operandos inteiros (`int` ou `char`) e trunca como em C (`-7 % 3` dá `-1`); com operando `float` a análise semântica dá erro, e com divisor zero a execução para com `Erro: Divisão por zero!`.
 
 ## Avaliador (`eval_ast`)
 
@@ -77,7 +78,7 @@ Listas de comandos (`next`, corpo de `while`/`for`, ramos do `if` e `AST_BLOCK`)
 | Identificador | Busca a variável na tabela de símbolos |
 | Aritmética | Se algum operando é `float`, o resultado é `float`; caso contrário é `int` (um `char` é promovido a `int`). Em `int` os operandos são convertidos com truncamento e `/` é divisão inteira |
 | Comparações e `==`, `!=` | Resultado `int`: `1` ou `0` |
-| `&&`, `\|\|` | Resultado `int` (`1` ou `0`). **Os dois lados são sempre avaliados** (não há curto-circuito) |
+| `&&`, `\|\|` | Resultado `int` (`1` ou `0`), **com curto-circuito** como em C: em `a && b`, `b` só é avaliado se `a` é verdadeiro; em `a \|\| b`, só se `a` é falso. Assim `a != 0 && 10 / a > 1` não divide por zero |
 | `-x` | Mantém o tipo do operando |
 | `!x` | Resultado `int` (`1` se `x` é zero) |
 | Atribuição | Avalia a expressão e converte o valor para o **tipo declarado** da variável (por exemplo `int b = 3.9` guarda `3`) |
@@ -86,11 +87,11 @@ Listas de comandos (`next`, corpo de `while`/`for`, ramos do `if` e `AST_BLOCK`)
 | `while` | Repete o corpo enquanto a condição é diferente de zero |
 | `for` | Executa `init` uma vez; a cada volta testa `cond` (se existir), executa o corpo e depois `step` |
 | `do-while` | Executa o corpo e depois testa a condição; o corpo roda pelo menos uma vez |
-| `switch` | Avalia a expressão, procura o primeiro `case` com o mesmo valor e executa a partir dele, **seguindo para os `case` seguintes** (*fall-through*) até um `break`. Sem `case` correspondente, nada é executado (não há `default`) |
+| `switch` | Avalia a expressão, procura o primeiro `case` com o mesmo valor e executa a partir dele, **seguindo para os `case` seguintes** (*fall-through*) até um `break`. Sem `case` correspondente, começa no `default` (em qualquer posição) ou, se não houver, não executa nada |
 | `break` | Sai do laço ou `switch` mais interno |
 | `continue` | Pula para a próxima volta do laço mais interno (no `for`, o `step` ainda é executado) |
 | `return` | Interrompe a execução e guarda o valor em `valor_retorno` |
-| Bloco | Executa a lista de comandos; **não cria um novo escopo** |
+| Bloco | Abre um escopo, executa a lista de comandos e fecha o escopo: as variáveis declaradas dentro dele deixam de existir. `for` e o corpo do `switch` também abrem escopo (veja [Tabela de Símbolos](tabela_simbolos.md#escopos)) |
 
 ### Controle de fluxo (`break`, `continue`, `return`)
 
@@ -125,7 +126,6 @@ Os erros abaixo imprimem a mensagem em `stderr` e **encerram o programa** com `e
 ### Pontos de atenção
 
 * Declarar de novo uma variável existente **não é erro**: `inserir_simbolo` só atualiza o valor e mantém o tipo original.
-* A tabela de símbolos é única e global: variáveis declaradas dentro de um bloco continuam visíveis depois dele.
 
 ## Visualização e memória
 

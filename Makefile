@@ -16,12 +16,12 @@ CC     = gcc
 CFLAGS = -Wall -I$(BUILD_DIR) -Isrc
 
 # Módulos em C (AST, avaliador e tabela de símbolos)
-C_SRCS = src/ast.c src/tabela_simbolos.c
+C_SRCS = src/ast.c src/tabela_simbolos.c src/semantica.c
 
 # Compila lexer + parser juntos
 all: $(EXEC)
 
-$(EXEC): $(BISON_C) $(FLEX_C) $(C_SRCS) src/ast.h src/tabela_simbolos.h
+$(EXEC): $(BISON_C) $(FLEX_C) $(C_SRCS) src/ast.h src/tabela_simbolos.h src/semantica.h
 	$(CC) $(CFLAGS) -o $@ $(BISON_C) $(FLEX_C) $(C_SRCS) -lm
 
 # Lexer isolado: imprime os tokens (usa o parser.tab.h só para os códigos dos tokens)
@@ -39,7 +39,7 @@ $(BISON_C) $(BISON_H): $(BISON_FILE) | $(BUILD_DIR)
 $(FLEX_C): $(FLEX_FILE) $(BISON_H) | $(BUILD_DIR)
 	flex -o $(FLEX_C) $(FLEX_FILE)
 
-# Testes: unitários da AST + programas de exemplo (saída comparada com .esperado)
+# Testes: unitários da AST + programas de exemplo e de análise semântica (saída comparada com .esperado)
 TEST_AST = $(BUILD_DIR)/test_ast
 
 $(TEST_AST): src/test_main.c $(C_SRCS) src/ast.h src/tabela_simbolos.h | $(BUILD_DIR)
@@ -49,8 +49,8 @@ test: $(EXEC) $(TEST_AST)
 	@echo "=== Rodando testes unitários da AST ==="
 	@./$(TEST_AST) > /dev/null && echo "[OK ] testes unitários da AST" || { echo "[FALHOU] testes unitários da AST"; exit 1; }
 	
-	@echo "\n=== Rodando testes de escopo / válidos ==="
-	@falhas=0; for f in tests/escopo/*.txt tests/programas/*; do \
+	@printf "\n=== Rodando programas (saída comparada com .esperado) ===\n"
+	@falhas=0; for f in tests/programas/* tests/semantica/*; do \
 		[ -e "$$f" ] || continue; \
 		[ -d "$$f" ] && continue; \
 		if echo "$$f" | grep -q "\.esperado$$"; then continue; fi; \
@@ -69,7 +69,7 @@ test: $(EXEC) $(TEST_AST)
 		fi; \
 	done; \
 	\
-	echo "\n=== Rodando testes de erro (devem falhar) ==="; \
+	printf "\n=== Rodando testes de erro (devem falhar) ===\n"; \
 	for f in tests/erros/*; do \
 		[ -e "$$f" ] || continue; \
 		[ -d "$$f" ] && continue; \

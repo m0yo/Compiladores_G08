@@ -1,0 +1,7 @@
+Aviso semântico na linha 4: variável 'x' pode ser usada sem valor
+Declarado: x : int
+Declarado: y : int
+int y = 0
+Declarado: z : int
+int z = 5
+int y = 5

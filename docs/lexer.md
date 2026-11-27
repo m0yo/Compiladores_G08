@@ -25,8 +25,8 @@ A ferramenta responsável pela geração do analisador léxico é o **Flex** (Fa
 | Categoria | Lexemas | Tokens |
 |---|---|---|
 | Tipos | `int` `float` `char` `long` `double` | `T_INT` `T_FLOAT` `T_CHAR` `T_LONG` `T_DOUBLE` |
-| Controle de fluxo | `if` `else` `while` `for` `do` `switch` `case` `break` `continue` `return` | `F_IF` `F_ELSE` `F_WHILE` `F_FOR` `F_DO` `F_SWITCH` `F_CASE` `F_BREAK` `F_CONTINUE` `F_RETURN` |
-| Aritméticos | `+` `-` `*` `/` | `O_PLUS` `O_MINUS` `O_MULTI` `O_DIV` |
+| Controle de fluxo | `if` `else` `while` `for` `do` `switch` `case` `default` `break` `continue` `return` | `F_IF` `F_ELSE` `F_WHILE` `F_FOR` `F_DO` `F_SWITCH` `F_CASE` `F_DEFAULT` `F_BREAK` `F_CONTINUE` `F_RETURN` |
+| Aritméticos | `+` `-` `*` `/` `%` | `O_PLUS` `O_MINUS` `O_MULTI` `O_DIV` `O_MOD` |
 | Atribuição | `=` | `O_ASSIGN` |
 | Relacionais | `==` `!=` `<` `>` `<=` `>=` | `R_EQ` `R_NE` `R_LT` `R_GT` `R_LE` `R_GE` |
 | Lógicos | `&&` `\|\|` `!` | `DM_AND` `DM_OR` `DM_NOT` |
@@ -55,21 +55,22 @@ Em literais de caractere, o lexer traduz `\n`, `\t`, `\r`, `\0`, `\\` e `\'` par
 
 - `// ...` vai até o fim da linha e é descartado.
 - `/* ... */` pode ocupar várias linhas e é lido no estado exclusivo `COMENTARIO`, que também conta as quebras de linha. Comentários de bloco **não** podem ser aninhados.
-- Se o arquivo terminar com um comentário de bloco aberto, o lexer imprime `erro na linha N: comentario de bloco nao terminado` em `stderr` e encerra a análise.
+- Se o arquivo terminar com um comentário de bloco aberto, o lexer imprime `Erro léxico na linha N: comentário de bloco aberto e não fechado` em `stderr` (N é a linha do `/*`) e encerra a análise.
+- Cada erro léxico (comentário não fechado ou caractere desconhecido) incrementa o contador global `erros_lexicos`. Depois do `yyparse()`, o `main` do parser consulta esse contador: se ele for maior que zero, o programa **não é executado** e o código de saída é `1`. Antes, um comentário não fechado no fim do arquivo era só avisado e o programa rodava normalmente.
 
 Nenhum comentário gera token.
 
 ## Espaços e erros
 
 - Espaços, tabulações e `\r` são ignorados; `\n` apenas incrementa `linha_erro`.
-- Qualquer caractere que não case com nenhuma regra (por exemplo `@`, `#`, `%` ou um `&` ou `|` isolado) gera a mensagem `erro na linha N: 'c'` em `stderr`. O lexer devolve o próprio caractere como token, que não existe na gramática; por isso o parser rejeita a entrada com erro sintático logo em seguida (o programa não é executado).
+- Qualquer caractere que não case com nenhuma regra (por exemplo `@`, `#` ou um `&` ou `|` isolado) gera a mensagem `erro na linha N: 'c'` em `stderr`. O lexer devolve o próprio caractere como token, que não existe na gramática; por isso o parser rejeita a entrada com erro sintático logo em seguida (o programa não é executado).
 
 ## Limitações conhecidas
 
-- Não existem tokens para `%`, `&` e `|` isolados, `++`, `--`, `+=` e demais operadores compostos, `.` e `->`.
+- Não existem tokens para `&` e `|` isolados, `++`, `--`, `+=` e demais operadores compostos, `.` e `->`.
 - Literais numéricos: apenas decimal. Não há hexadecimal, octal, notação científica (`1e3`), sufixos (`10L`, `1.5f`) nem reais como `.5` ou `5.` (o `5.` vira `L_INT` seguido de erro no `.`).
 - `short`, `signed`, `unsigned`, `void`, `bool`, `true` e `false` **não** são palavras reservadas: são reconhecidos como `IDENT`. O mesmo vale para `string`, `main` e `printf`. Strings, funções e structs não fazem parte da linguagem: aspas duplas, `,` e `.` geram erro léxico e o parser rejeita a entrada.
-- `long` e `double` (`T_LONG`, `T_DOUBLE`) são aceitos pela gramática, mas ainda não têm tipo próprio: o parser os trata como `int` e `float`. `default` não é palavra-chave: chega como `IDENT`, então o `switch` só aceita `case`.
+- `long` e `double` (`T_LONG`, `T_DOUBLE`) são aceitos pela gramática, mas ainda não têm tipo próprio: o parser os trata como `int` e `float`.
 
 ## Como testar
 
