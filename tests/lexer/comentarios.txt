@@ -1,0 +1,4 @@
+int a; // comentario de linha ate o fim da linha
+/* comentario
+   de bloco com ** asteriscos */
+int b; /* outro */ int c;
