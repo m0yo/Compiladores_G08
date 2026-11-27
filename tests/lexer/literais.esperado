@@ -12,6 +12,9 @@ Lexema: ''\n'' | Linha: 4
 Lexema: ''\t'' | Linha: 4
 Lexema: ''\''' | Linha: 4
 Lexema: ''\\'' | Linha: 4
+Lexema: ''\r'' | Linha: 4
+Lexema: ''\0'' | Linha: 4
+Lexema: ''\"'' | Linha: 4
 Lexema: 'x' | Linha: 5
 Lexema: '_y' | Linha: 5
 Lexema: 'z9' | Linha: 5
