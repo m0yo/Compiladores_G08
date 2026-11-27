@@ -119,7 +119,7 @@ O `make test` imprime `[OK ]` para cada teste e termina com código de saída di
 
 ### Saída e código de saída
 
-A linguagem não tem `printf`. O que o programa mostra é o rastro do avaliador (`Declarado: x : int = 10`, `int x = 21`, `Resultado da expressão: ...`). `return expr;` encerra o programa e vira o código de saída do `parser_exe`, como o `main` de um programa C (`Programa retornou: N`). Erros léxicos, sintáticos e semânticos terminam com código `1` e **nada é executado**; avisos (`Aviso semântico na linha N: ...`) não impedem a execução.
+A linguagem não tem `printf`. O que o programa mostra é o rastro do avaliador (`Declarado: x : int = 10`, `int x = 21`, `Resultado da expressão: ...`). `return expr;` encerra o programa e vira o código de saída do `parser_exe` (módulo 256, como em qualquer programa C); o valor completo aparece em `Programa retornou: N`. Erros léxicos, sintáticos e semânticos terminam com código `1` e **nada é executado**; avisos (`Aviso semântico na linha N: ...`) não impedem a execução. Por isso, para saber se houve erro, olhe a mensagem e não só o código de saída: `return 1;` também sai com `1`.
 
 ## Limitações conhecidas
 
