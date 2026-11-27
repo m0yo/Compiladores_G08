@@ -39,7 +39,7 @@ Os tokens são declarados em `parser.y` e produzidos pelo analisador léxico (ve
 
 * **Tipos:** `T_INT`, `T_FLOAT`, `T_CHAR`, `T_DOUBLE`, `T_LONG`
 * **Controle de fluxo:** `F_IF`, `F_ELSE`, `F_WHILE`, `F_FOR`, `F_DO`, `F_SWITCH`, `F_CASE`, `F_BREAK`, `F_CONTINUE`, `F_RETURN`
-* **Operadores:** `O_PLUS`, `O_MINUS`, `O_MULTI`, `O_DIV`, `O_ASSIGN`, `R_EQ`, `R_NE`, `R_LT`, `R_GT`, `R_LE`, `R_GE`, `DM_AND`, `DM_OR`, `DM_NOT`
+* **Operadores:** `O_PLUS`, `O_MINUS`, `O_MULTI`, `O_DIV`, `O_MOD`, `O_ASSIGN`, `R_EQ`, `R_NE`, `R_LT`, `R_GT`, `R_LE`, `R_GE`, `DM_AND`, `DM_OR`, `DM_NOT`
 * **Delimitadores:** `LBRACE`, `RBRACE`, `LBRACKET`, `RBRACKET`, `LPAREN`, `RPAREN`, `COLON`, `SEMICOLON`
 
 ---
@@ -97,6 +97,7 @@ O símbolo inicial é `programa`: uma sequência, possivelmente vazia, de comand
               | <expressao> O_MINUS <expressao>
               | <expressao> O_MULTI <expressao>
               | <expressao> O_DIV <expressao>
+              | <expressao> O_MOD <expressao>
               | O_MINUS <expressao>                  (* %prec UMINUS *)
               | <expressao> DM_AND <expressao>
               | <expressao> DM_OR <expressao>
@@ -125,7 +126,7 @@ Da menor para a maior precedência (as linhas de baixo prendem mais forte):
 | 3 | esquerda | `R_EQ` `R_NE` |
 | 4 | esquerda | `R_LT` `R_GT` `R_LE` `R_GE` |
 | 5 | esquerda | `O_PLUS` `O_MINUS` |
-| 6 | esquerda | `O_MULTI` `O_DIV` |
+| 6 | esquerda | `O_MULTI` `O_DIV` `O_MOD` |
 | 7 | — (`%precedence`) | `DM_NOT` |
 | 8 | — (`%precedence`) | `UMINUS` (menos unário) |
 

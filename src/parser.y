@@ -82,6 +82,7 @@ static ASTNode *anexar(ASTNode *a, ASTNode *b) {
 %token O_MINUS
 %token O_MULTI
 %token O_DIV
+%token O_MOD
 %token O_ASSIGN
 
 /* Operadores relacionais */
@@ -118,7 +119,7 @@ static ASTNode *anexar(ASTNode *a, ASTNode *b) {
 %left R_EQ R_NE
 %left R_LT R_GT R_LE R_GE
 %left O_PLUS O_MINUS
-%left O_MULTI O_DIV
+%left O_MULTI O_DIV O_MOD
 %precedence DM_NOT
 %precedence UMINUS
 
@@ -243,6 +244,7 @@ expressao:
     | expressao O_MINUS expressao   { $$ = new_binop_node('-', $1, $3); }
     | expressao O_MULTI expressao   { $$ = new_binop_node('*', $1, $3); }
     | expressao O_DIV expressao     { $$ = new_binop_node('/', $1, $3); }
+    | expressao O_MOD expressao     { $$ = new_binop_node('%', $1, $3); }
 
     | O_MINUS expressao %prec UMINUS { $$ = new_unaryop_node('-', $2); }
 

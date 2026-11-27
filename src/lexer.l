@@ -85,6 +85,7 @@ static char decod_char(const char *text){
 "-"         { return O_MINUS; }
 "*"         { return O_MULTI; }
 "/"         { return O_DIV; }
+"%"         { return O_MOD; }
 
 "="         { return O_ASSIGN; }
 

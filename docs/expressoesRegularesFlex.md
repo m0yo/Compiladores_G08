@@ -86,7 +86,7 @@ Palavras reservadas da linguagem, reconhecidas literalmente pelo scanner.
 
 Os operadores e delimitadores cobrem os símbolos aritméticos, relacionais, lógicos, de atribuição e pontuações estruturais da linguagem C.
 
-* **Aritméticos:** `+` (`O_PLUS`), `-` (`O_MINUS`), `*` (`O_MULTI`), `/` (`O_DIV`)
+* **Aritméticos:** `+` (`O_PLUS`), `-` (`O_MINUS`), `*` (`O_MULTI`), `/` (`O_DIV`), `%` (`O_MOD`)
 * **Atribuição:** `=` (`O_ASSIGN`)
 * **Relacionais:** `==` (`R_EQ`), `!=` (`R_NE`), `<` (`R_LT`), `>` (`R_GT`), `<=` (`R_LE`), `>=` (`R_GE`)
 * **Lógicos:** `&&` (`DM_AND`), `||` (`DM_OR`), `!` (`DM_NOT`)

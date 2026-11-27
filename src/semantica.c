@@ -4,6 +4,7 @@
  - variavel declarada duas vezes
  - break/continue fora de laco (ou switch, no caso do break)
  - valor repetido em "case" do mesmo switch
+ - operador % com operando float
  e avisa (sem impedir a execucao) quando
  - um float e atribuido a int/char (perde a parte decimal)
  - uma variavel pode ser usada sem valor (nenhuma atribuicao antes no texto)
@@ -130,9 +131,15 @@ static SymType tipo_expr(const ASTNode *e) {
     case AST_BINARYOP: {
         SymType l = tipo_expr(e->data.binaryop.left);
         SymType r = tipo_expr(e->data.binaryop.right);
-        if (e->data.binaryop.op == '/' && literal_zero(e->data.binaryop.right))
+        int op = e->data.binaryop.op;
+        if ((op == '/' || op == '%') && literal_zero(e->data.binaryop.right))
             aviso(e, "divisão por zero");
-        if (operador_booleano(e->data.binaryop.op)) return TYPE_INT;
+        if (op == '%') {
+            if (l == TYPE_FLOAT || r == TYPE_FLOAT)
+                erro(e, "operador '%%' exige operandos inteiros (int ou char)");
+            return TYPE_INT;
+        }
+        if (operador_booleano(op)) return TYPE_INT;
         return (l == TYPE_FLOAT || r == TYPE_FLOAT) ? TYPE_FLOAT : TYPE_INT;
     }
 

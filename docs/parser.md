@@ -16,7 +16,7 @@ Os nomes abaixo são os mesmos usados pelo lexer (`src/lexer.l`). O Bison gera o
 | Controle de fluxo | `F_IF` `F_ELSE` `F_WHILE` `F_FOR` `F_DO` `F_SWITCH` `F_CASE` `F_BREAK` `F_CONTINUE` `F_RETURN` |
 | Literais | `L_INT` `L_FLOAT` `L_CHAR` |
 | Identificador | `IDENT` |
-| Operadores aritméticos e atribuição | `O_PLUS` `O_MINUS` `O_MULTI` `O_DIV` `O_ASSIGN` |
+| Operadores aritméticos e atribuição | `O_PLUS` `O_MINUS` `O_MULTI` `O_DIV` `O_MOD` `O_ASSIGN` |
 | Operadores relacionais | `R_EQ` `R_NE` `R_LT` `R_GT` `R_LE` `R_GE` |
 | Operadores lógicos | `DM_AND` `DM_OR` `DM_NOT` |
 | Delimitadores | `LBRACE` `RBRACE` `LBRACKET` `RBRACKET` `LPAREN` `RPAREN` `COLON` `SEMICOLON` |
@@ -38,7 +38,7 @@ Da menor para a maior precedência (as linhas de baixo prendem mais forte):
 | 5 | esquerda | `R_EQ` `R_NE` | `==` `!=` |
 | 6 | esquerda | `R_LT` `R_GT` `R_LE` `R_GE` | `<` `>` `<=` `>=` |
 | 7 | esquerda | `O_PLUS` `O_MINUS` | `+` `-` |
-| 8 | esquerda | `O_MULTI` `O_DIV` | `*` `/` |
+| 8 | esquerda | `O_MULTI` `O_DIV` `O_MOD` | `*` `/` `%` |
 | 9 | — (`%precedence`) | `DM_NOT` | `!` |
 | 10 | — (`%precedence`) | `UMINUS` | `-` unário |
 

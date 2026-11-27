@@ -26,7 +26,7 @@ A ferramenta responsável pela geração do analisador léxico é o **Flex** (Fa
 |---|---|---|
 | Tipos | `int` `float` `char` `long` `double` | `T_INT` `T_FLOAT` `T_CHAR` `T_LONG` `T_DOUBLE` |
 | Controle de fluxo | `if` `else` `while` `for` `do` `switch` `case` `break` `continue` `return` | `F_IF` `F_ELSE` `F_WHILE` `F_FOR` `F_DO` `F_SWITCH` `F_CASE` `F_BREAK` `F_CONTINUE` `F_RETURN` |
-| Aritméticos | `+` `-` `*` `/` | `O_PLUS` `O_MINUS` `O_MULTI` `O_DIV` |
+| Aritméticos | `+` `-` `*` `/` `%` | `O_PLUS` `O_MINUS` `O_MULTI` `O_DIV` `O_MOD` |
 | Atribuição | `=` | `O_ASSIGN` |
 | Relacionais | `==` `!=` `<` `>` `<=` `>=` | `R_EQ` `R_NE` `R_LT` `R_GT` `R_LE` `R_GE` |
 | Lógicos | `&&` `\|\|` `!` | `DM_AND` `DM_OR` `DM_NOT` |
@@ -62,11 +62,11 @@ Nenhum comentário gera token.
 ## Espaços e erros
 
 - Espaços, tabulações e `\r` são ignorados; `\n` apenas incrementa `linha_erro`.
-- Qualquer caractere que não case com nenhuma regra (por exemplo `@`, `#`, `%` ou um `&` ou `|` isolado) gera a mensagem `erro na linha N: 'c'` em `stderr`. O lexer devolve o próprio caractere como token, que não existe na gramática; por isso o parser rejeita a entrada com erro sintático logo em seguida (o programa não é executado).
+- Qualquer caractere que não case com nenhuma regra (por exemplo `@`, `#` ou um `&` ou `|` isolado) gera a mensagem `erro na linha N: 'c'` em `stderr`. O lexer devolve o próprio caractere como token, que não existe na gramática; por isso o parser rejeita a entrada com erro sintático logo em seguida (o programa não é executado).
 
 ## Limitações conhecidas
 
-- Não existem tokens para `%`, `&` e `|` isolados, `++`, `--`, `+=` e demais operadores compostos, `.` e `->`.
+- Não existem tokens para `&` e `|` isolados, `++`, `--`, `+=` e demais operadores compostos, `.` e `->`.
 - Literais numéricos: apenas decimal. Não há hexadecimal, octal, notação científica (`1e3`), sufixos (`10L`, `1.5f`) nem reais como `.5` ou `5.` (o `5.` vira `L_INT` seguido de erro no `.`).
 - `short`, `signed`, `unsigned`, `void`, `bool`, `true` e `false` **não** são palavras reservadas: são reconhecidos como `IDENT`. O mesmo vale para `string`, `main` e `printf`. Strings, funções e structs não fazem parte da linguagem: aspas duplas, `,` e `.` geram erro léxico e o parser rejeita a entrada.
 - `long` e `double` (`T_LONG`, `T_DOUBLE`) são aceitos pela gramática, mas ainda não têm tipo próprio: o parser os trata como `int` e `float`. `default` não é palavra-chave: chega como `IDENT`, então o `switch` só aceita `case`.

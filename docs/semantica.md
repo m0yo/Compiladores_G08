@@ -21,7 +21,8 @@ Sem essa fase, os mesmos problemas só apareciam durante a execução, depois de
 | `break` fora de laço e de `switch` | erro | `'break' fora de laço ou switch` |
 | `continue` fora de laço (dentro de `switch` não basta) | erro | `'continue' fora de laço` |
 | Valor repetido em `case` do mesmo `switch` | erro | `valor 'case N' repetido no switch` |
-| Divisão por zero com divisor literal (`a / 0`, `a / 0.0`) | aviso | `divisão por zero` |
+| Operador `%` com operando `float` | erro | `operador '%' exige operandos inteiros (int ou char)` |
+| Divisão ou resto por zero com divisor literal (`a / 0`, `a % 0`) | aviso | `divisão por zero` |
 | Variável usada sem nenhuma atribuição antes no texto | aviso | `variável 'x' pode ser usada sem valor` |
 | `float` atribuído a `int` ou `char` | aviso | `'x' recebe um float e será convertido para int (perde a parte decimal)` |
 

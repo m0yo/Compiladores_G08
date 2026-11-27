@@ -47,6 +47,7 @@ O campo `op` guarda o próprio caractere para `+ - * / < > ! & |` e uma constant
 | `O_MINUS` | `'-'` (binário e unário) | `-` |
 | `O_MULTI` | `'*'` | `*` |
 | `O_DIV` | `'/'` | `/` |
+| `O_MOD` | `'%'` | `%` |
 | `DM_AND` | `'&'` | `&&` |
 | `DM_OR` | `'\|'` | `\|\|` |
 | `DM_NOT` | `'!'` | `!` |
@@ -57,7 +58,7 @@ O campo `op` guarda o próprio caractere para `+ - * / < > ! & |` e uma constant
 | `R_LE` | `OP_LEQ` | `<=` |
 | `R_GE` | `OP_GEQ` | `>=` |
 
-> Os códigos `OP_EQ`, `OP_NEQ`, `OP_LEQ` e `OP_GEQ` (256 a 259) **não são** os códigos de token do Bison, e os dois conjuntos se sobrepõem numericamente (por exemplo, `OP_LEQ` vale 258, o mesmo número de `T_INT`). Por isso as ações semânticas do parser traduzem explicitamente cada token para o seu operador. O módulo `%` não é implementado: o avaliador responde `Erro: Operador binário desconhecido`.
+> Os códigos `OP_EQ`, `OP_NEQ`, `OP_LEQ` e `OP_GEQ` (256 a 259) **não são** os códigos de token do Bison, e os dois conjuntos se sobrepõem numericamente (por exemplo, `OP_LEQ` vale 258, o mesmo número de `T_INT`). Por isso as ações semânticas do parser traduzem explicitamente cada token para o seu operador. O resto `%` só aceita operandos inteiros (`int` ou `char`) e trunca como em C (`-7 % 3` dá `-1`); com operando `float` a análise semântica dá erro, e com divisor zero a execução para com `Erro: Divisão por zero!`.
 
 ## Avaliador (`eval_ast`)
 

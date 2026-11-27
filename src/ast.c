@@ -329,6 +329,19 @@ resultado eval_ast(ASTNode *node){
                         res.val = (double)((int)left.val / (int)right.val);
                     res.Type = rtype;
                     break;
+                case '%':
+                    //resto da divisao inteira: so para int/char, como em C
+                    if(rtype == TYPE_FLOAT){
+                        fprintf(stderr, "Erro: operador %% exige operandos inteiros!\n");
+                        exit(EXIT_FAILURE);
+                    }
+                    if((int)right.val == 0){
+                        fprintf(stderr, "Erro: Divisão por zero!\n");
+                        exit(EXIT_FAILURE);
+                    }
+                    res.val = (double)((int)left.val % (int)right.val);
+                    res.Type = TYPE_INT;
+                    break;
 
                 //operadores logicos
                 
@@ -543,6 +556,7 @@ static const char *op_to_str(int op) {
         case '-': return "-";
         case '*': return "*";
         case '/': return "/";
+        case '%': return "%";
         case '&': return "&&";
         case '|': return "||";
         case '!': return "!";
