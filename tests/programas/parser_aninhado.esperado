@@ -26,3 +26,5 @@ int j = 3
 int i = 3
 Declarado: dentro : int = 18
 int dentro = 19
+Declarado: pendente : int = 0
+int pendente = 10
