@@ -25,6 +25,7 @@ theme:
 nav:
   - Início: index.md
   - Trabalho de Compiladores: trabalho_compiladores.md
+  - Processo de desenvolvimento: processo.md
   - Contribuição:
     - Documentação: docs.md
     - Guia de Commits: contributing.md
