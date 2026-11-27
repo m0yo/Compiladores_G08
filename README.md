@@ -23,7 +23,7 @@ Este projeto é um **interpretador para a linguagem C, implementado na própria 
 - ⬜ Verificação de tipos mais completa (hoje só há o aviso de conversão `float` → `int`/`char` e o erro de `%` com `float`)
 - ⬜ Tipos próprios para `long`/`double`
 - ⬜ Arrays e ponteiros (funções, strings e structs estão fora do escopo; veja `tests/erros/`)
-- ⬜ `case` com constante negativa e `+` unário (`case -1:`), `++`, `+=` e afins
+- ⬜ Operadores de incremento e atribuição composta (`++`, `+=` e afins)
 
 > Atualize este checklist conforme o projeto avança — é a forma mais rápida de qualquer pessoa entender "onde estamos" sem ler código.
 
@@ -126,7 +126,7 @@ A linguagem não tem `printf`. O que o programa mostra é o rastro do avaliador 
 - **Fora do escopo, por decisão do grupo:** strings, funções e structs são rejeitados com erro (testados em `tests/erros/`). Também não há arrays nem ponteiros.
 - **Sem `printf`:** a saída é o rastro do avaliador (veja acima).
 - **Tipos:** só `int`, `float` e `char`. `long` e `double` são tratados como `int` e `float`, e o estouro de `int` é silencioso.
-- **Operadores:** não há `++`, `+=` e afins, e `case -1:` e `+x` ainda não são aceitos.
+- **Operadores:** não há `++`, `+=` e afins.
 - **Erros sintáticos:** o parser para no primeiro erro e informa só a linha (`syntax error`).
 
 ## Documentação
@@ -154,6 +154,7 @@ Isso sobe um servidor local (geralmente em `http://127.0.0.1:8000`) com o site d
 - [x] Curto-circuito em `&&` e `||` e operador `%`
 - [x] Suporte a estruturas de controle (`if`, `while`, `do-while`, `for`, `switch`, `break`, `continue`, `return` e `default`)
 - [x] Erro léxico para comentário de bloco não fechado
+- [x] `case` com constante negativa (`case -1:`) e `+` unário
 - [x] Testes automatizados cobrindo cada etapa do pipeline (scanner, parser, semântica e execução)
 - [ ] Verificação de tipos mais completa
 - [ ] Decidir a saída de dados da linguagem (`printf` ou comando de impressão)
