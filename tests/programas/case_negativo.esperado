@@ -1,0 +1,4 @@
+Declarado: x : int = 5
+Declarado: r : int = 0
+int r = 2
+Programa retornou: 2

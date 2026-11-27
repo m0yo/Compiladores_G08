@@ -239,8 +239,10 @@ caso:
     ;
 
 rotulo:
-      L_INT     { $$ = $1; }
-    | L_CHAR    { $$ = $1; }
+      L_INT                 { $$ = $1; }
+    | L_CHAR                { $$ = $1; }
+    | O_MINUS L_INT         { $$ = -$2; }
+    | O_PLUS L_INT          { $$ = $2; }
     ;
 
 expressao:
@@ -251,6 +253,7 @@ expressao:
     | expressao O_MOD expressao     { $$ = new_binop_node('%', $1, $3); }
 
     | O_MINUS expressao %prec UMINUS { $$ = new_unaryop_node('-', $2); }
+    | O_PLUS expressao %prec UMINUS  { $$ = new_unaryop_node('+', $2); }
 
     | expressao DM_AND expressao    { $$ = new_binop_node('&', $1, $3); }
     | expressao DM_OR expressao     { $$ = new_binop_node('|', $1, $3); }
