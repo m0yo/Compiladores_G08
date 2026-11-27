@@ -13,7 +13,7 @@ Os nomes abaixo são os mesmos usados pelo lexer (`src/lexer.l`). O Bison gera o
 | Categoria | Tokens |
 |---|---|
 | Tipos | `T_INT` `T_FLOAT` `T_CHAR` `T_DOUBLE` `T_LONG` |
-| Controle de fluxo | `F_IF` `F_ELSE` `F_WHILE` `F_FOR` `F_DO` `F_SWITCH` `F_CASE` `F_BREAK` `F_CONTINUE` `F_RETURN` |
+| Controle de fluxo | `F_IF` `F_ELSE` `F_WHILE` `F_FOR` `F_DO` `F_SWITCH` `F_CASE` `F_DEFAULT` `F_BREAK` `F_CONTINUE` `F_RETURN` |
 | Literais | `L_INT` `L_FLOAT` `L_CHAR` |
 | Identificador | `IDENT` |
 | Operadores aritméticos e atribuição | `O_PLUS` `O_MINUS` `O_MULTI` `O_DIV` `O_MOD` `O_ASSIGN` |
@@ -74,6 +74,7 @@ O símbolo inicial é `programa`, que é uma sequência (possivelmente vazia) de
 | `comando_for` → `for ( for_init ; for_cond ; for_passo ) comando` | `for (int i = 0; i < 3; i = i + 1) s = s + i;` |
 | `comando_switch` → `switch ( expressao ) { lista_casos }` | `switch (x) { case 1: y = 1; break; }` |
 | `caso` → `case rotulo : lista_comandos` | `case 'a': y = 2;` |
+| `caso` → `default : lista_comandos` | `default: y = 0;` |
 | `comando` → `break ;` \| `continue ;` | `break;` |
 | `comando` → `return ;` \| `return expressao ;` | `return x + 1;` |
 
@@ -92,14 +93,13 @@ Um arquivo de entrada completo, com todos esses comandos, está em `tests/teste_
 
 O parser **aceita** a sintaxe abaixo; o comportamento é decidido na execução, não na análise sintática:
 
-* `break` ou `continue` fora de um laço (ou de um `switch`, no caso do `break`) **não** dão erro sintático; o erro aparece ao executar (`Erro: 'break' fora de laço ou switch`). Uma análise semântica separada ainda não existe.
+* `break` ou `continue` fora de um laço (ou de um `switch`, no caso do `break`) **não** dão erro sintático; a [análise semântica](semantica.md) os rejeita antes da execução.
 * `return` no nível do programa encerra a execução, como o `return` do `main` em C (seção 6).
 * `switch` sem `case` é aceito (`switch (x) { }`) e não faz nada.
 
 O parser **não reconhece**:
 
 * Strings, funções e structs: fora do escopo da linguagem. O lexer não tem token para string, e um programa que os use é rejeitado com erro léxico ou sintático (veja `tests/escopo/`).
-* `default` dentro do `switch`: o lexer não tem token para ele, então `default` chega como `IDENT`.
 * Arrays (`LBRACKET`/`RBRACKET`), várias declarações na mesma linha (`int a, b;`), operadores `++`, `--`, `+=` e afins.
 * Declaração e inicialização de mais de uma variável por linha, e `case` com expressão no rótulo (só literal).
 * `int main() { ... }`: como não há funções, o programa é a própria lista de comandos.
@@ -153,7 +153,7 @@ Cada regra devolve em `$$` um nó da AST (`%type <node>`). As principais:
 | `bloco` | `new_block_node` |
 | `if` / `if-else` | `new_if_stmt_node` |
 | `while` / `do-while` / `for` | `new_while_stmt_node` / `new_do_while_node` / `new_for_stmt_node` |
-| `switch` / `case` | `new_switch_node` / `new_case_node` (o rótulo é um `int`; um `char` vira o seu código) |
+| `switch` / `case` / `default` | `new_switch_node` / `new_case_node` (o rótulo é um `int`; um `char` vira o seu código) / `new_default_node` |
 | `break` / `continue` / `return` | `new_break_node` / `new_continue_node` / `new_return_node` |
 
 Listas (`programa`, `lista_comandos`, `lista_casos`) são encadeadas pelo campo `next` com a função auxiliar `anexar`. Os nomes vindos do lexer (`IDENT`, em `sval` alocado com `malloc`) são liberados com `free` logo depois de criar o nó, porque os construtores fazem `strdup`.

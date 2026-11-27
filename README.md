@@ -21,7 +21,7 @@ Este projeto é um **interpretador para a linguagem C, implementado na própria 
 - ✅ Testes automatizados com `make test` (unitários da AST + programas de ponta a ponta em `tests/programas/` e de análise semântica em `tests/semantica/`)
 - ⬜ Saída de dados na linguagem (`printf`) e `int main() { ... }`
 - ⬜ Verificação de tipos mais completa e escopo de bloco (a análise semântica atual usa escopo único e só avisa sobre conversões `float` → `int`/`char`)
-- ⬜ Tipos próprios para `long`/`double` e `default` no `switch`
+- ⬜ Tipos próprios para `long`/`double`
 - ⬜ Arrays e ponteiros (funções, strings e structs estão fora do escopo; veja `tests/escopo/`)
 
 > Atualize este checklist conforme o projeto avança — é a forma mais rápida de qualquer pessoa entender "onde estamos" sem ler código.
@@ -131,7 +131,7 @@ Isso sobe um servidor local (geralmente em `http://127.0.0.1:8000`) com o site d
 - [x] Executar programas completos (parser → AST → `eval_ast`)
 - [x] Implementar análise semântica (declarações, divisão por zero, `break`/`continue`, `case` repetido)
 - [ ] Verificação de tipos mais completa e escopo de bloco
-- [x] Suporte a estruturas de controle (`if`, `while`, `do-while`, `for`, `switch`, `break`, `continue`, `return`; falta `default`)
+- [x] Suporte a estruturas de controle (`if`, `while`, `do-while`, `for`, `switch`, `break`, `continue`, `return` e `default`)
 - [ ] Suporte a arrays e ponteiros (funções, strings e structs estão fora do escopo)
 - [ ] Testes automatizados cobrindo cada etapa do pipeline (`make test` já cobre a AST e o pipeline completo; falta ampliar os casos, inclusive de erro)
 

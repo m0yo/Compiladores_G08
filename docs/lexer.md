@@ -25,7 +25,7 @@ A ferramenta responsável pela geração do analisador léxico é o **Flex** (Fa
 | Categoria | Lexemas | Tokens |
 |---|---|---|
 | Tipos | `int` `float` `char` `long` `double` | `T_INT` `T_FLOAT` `T_CHAR` `T_LONG` `T_DOUBLE` |
-| Controle de fluxo | `if` `else` `while` `for` `do` `switch` `case` `break` `continue` `return` | `F_IF` `F_ELSE` `F_WHILE` `F_FOR` `F_DO` `F_SWITCH` `F_CASE` `F_BREAK` `F_CONTINUE` `F_RETURN` |
+| Controle de fluxo | `if` `else` `while` `for` `do` `switch` `case` `default` `break` `continue` `return` | `F_IF` `F_ELSE` `F_WHILE` `F_FOR` `F_DO` `F_SWITCH` `F_CASE` `F_DEFAULT` `F_BREAK` `F_CONTINUE` `F_RETURN` |
 | Aritméticos | `+` `-` `*` `/` `%` | `O_PLUS` `O_MINUS` `O_MULTI` `O_DIV` `O_MOD` |
 | Atribuição | `=` | `O_ASSIGN` |
 | Relacionais | `==` `!=` `<` `>` `<=` `>=` | `R_EQ` `R_NE` `R_LT` `R_GT` `R_LE` `R_GE` |
@@ -69,7 +69,7 @@ Nenhum comentário gera token.
 - Não existem tokens para `&` e `|` isolados, `++`, `--`, `+=` e demais operadores compostos, `.` e `->`.
 - Literais numéricos: apenas decimal. Não há hexadecimal, octal, notação científica (`1e3`), sufixos (`10L`, `1.5f`) nem reais como `.5` ou `5.` (o `5.` vira `L_INT` seguido de erro no `.`).
 - `short`, `signed`, `unsigned`, `void`, `bool`, `true` e `false` **não** são palavras reservadas: são reconhecidos como `IDENT`. O mesmo vale para `string`, `main` e `printf`. Strings, funções e structs não fazem parte da linguagem: aspas duplas, `,` e `.` geram erro léxico e o parser rejeita a entrada.
-- `long` e `double` (`T_LONG`, `T_DOUBLE`) são aceitos pela gramática, mas ainda não têm tipo próprio: o parser os trata como `int` e `float`. `default` não é palavra-chave: chega como `IDENT`, então o `switch` só aceita `case`.
+- `long` e `double` (`T_LONG`, `T_DOUBLE`) são aceitos pela gramática, mas ainda não têm tipo próprio: o parser os trata como `int` e `float`.
 
 ## Como testar
 

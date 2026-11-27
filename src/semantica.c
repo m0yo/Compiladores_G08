@@ -5,6 +5,7 @@
  - break/continue fora de laco (ou switch, no caso do break)
  - valor repetido em "case" do mesmo switch
  - operador % com operando float
+ - mais de um "default" no mesmo switch
  e avisa (sem impedir a execucao) quando
  - um float e atribuido a int/char (perde a parte decimal)
  - uma variavel pode ser usada sem valor (nenhuma atribuicao antes no texto)
@@ -166,9 +167,16 @@ static void visitar_switch(const ASTNode *no) {
         exit(EXIT_FAILURE);
     }
     int n_vistos = 0;
+    int n_default = 0;
 
     prof_switch++;
     for (const ASTNode *c = no->data.switch_stmt.cases; c; c = c->next) {
+        if (c->data.case_stmt.is_default) {
+            if (++n_default > 1)
+                erro(c, "mais de um 'default' no switch");
+            visitar(c->data.case_stmt.stmts);
+            continue;
+        }
         int repetido = 0;
         for (int i = 0; i < n_vistos; i++)
             if (vistos[i] == c->data.case_stmt.value) repetido = 1;

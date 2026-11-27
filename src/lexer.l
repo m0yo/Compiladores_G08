@@ -66,6 +66,7 @@ static char decod_char(const char *text){
 "do"        { return F_DO; }
 "switch"    { return F_SWITCH; }
 "case"      { return F_CASE; }
+"default"   { return F_DEFAULT; }
 "break"     { return F_BREAK; }
 "continue"  { return F_CONTINUE; }
 "return"    { return F_RETURN; }

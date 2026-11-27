@@ -30,7 +30,7 @@ Os campos das expressões e dos comandos são:
 | `AST_FOR` | `for_stmt.init`, `cond`, `step`, `body` | `new_for_stmt_node(init, cond, step, body)` |
 | `AST_DO_WHILE` | `while_stmt.body`, `cond` (mesmos campos do `while`) | `new_do_while_node(body, cond)` |
 | `AST_SWITCH` | `switch_stmt.expr`, `cases` (lista de `AST_CASE` via `next`) | `new_switch_node(expr, cases)` |
-| `AST_CASE` | `case_stmt.value` (`int`), `stmts` | `new_case_node(value, stmts)` |
+| `AST_CASE` | `case_stmt.value` (`int`), `is_default`, `stmts` | `new_case_node(value, stmts)` / `new_default_node(stmts)` |
 | `AST_BREAK` / `AST_CONTINUE` | — | `new_break_node()` / `new_continue_node()` |
 | `AST_RETURN` | `return_stmt.expr` (`NULL` em `return;`) | `new_return_node(expr)` |
 | `AST_BLOCK` | `block.stmts` (cabeça da lista de comandos) | `new_block_node(stmts)` |
@@ -87,7 +87,7 @@ Listas de comandos (`next`, corpo de `while`/`for`, ramos do `if` e `AST_BLOCK`)
 | `while` | Repete o corpo enquanto a condição é diferente de zero |
 | `for` | Executa `init` uma vez; a cada volta testa `cond` (se existir), executa o corpo e depois `step` |
 | `do-while` | Executa o corpo e depois testa a condição; o corpo roda pelo menos uma vez |
-| `switch` | Avalia a expressão, procura o primeiro `case` com o mesmo valor e executa a partir dele, **seguindo para os `case` seguintes** (*fall-through*) até um `break`. Sem `case` correspondente, nada é executado (não há `default`) |
+| `switch` | Avalia a expressão, procura o primeiro `case` com o mesmo valor e executa a partir dele, **seguindo para os `case` seguintes** (*fall-through*) até um `break`. Sem `case` correspondente, começa no `default` (em qualquer posição) ou, se não houver, não executa nada |
 | `break` | Sai do laço ou `switch` mais interno |
 | `continue` | Pula para a próxima volta do laço mais interno (no `for`, o `step` ainda é executado) |
 | `return` | Interrompe a execução e guarda o valor em `valor_retorno` |

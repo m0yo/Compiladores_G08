@@ -97,6 +97,16 @@ int main(void) {
     t = new_decl_node(TYPE_CHAR, "c", new_char_node('A')); eval_ast(t); free_ast(t);
     CHECK("char c = 'A'", buscar_simbolo("c")->value.charValue == 'A');
 
+    /* 11. switch com default: switch (9) { case 1: d = 1; default: d = d + 10; case 2: d = d + 100; } */
+    t = new_decl_node(TYPE_INT, "d", new_num_node(0)); eval_ast(t); free_ast(t);
+    ASTNode *casos = new_case_node(1, new_assign_node("d", new_num_node(1)));
+    casos->next = new_default_node(new_assign_node("d", new_binop_node('+', new_id_node("d"), new_num_node(10))));
+    casos->next->next = new_case_node(2, new_assign_node("d", new_binop_node('+', new_id_node("d"), new_num_node(100))));
+    t = new_switch_node(new_num_node(9), casos);
+    eval_ast(t);
+    CHECK("switch sem case correspondente começa no default: d == 110", buscar_simbolo("d")->value.intValue == 110);
+    free_ast(t);
+
     sym_print();
     limpar_tabela();
     printf("\n%s (%d falha(s))\n", falhas ? "HOUVE FALHAS" : "TODOS OS TESTES PASSARAM", falhas);

@@ -65,6 +65,7 @@ static ASTNode *anexar(ASTNode *a, ASTNode *b) {
 %token F_DO
 %token F_SWITCH
 %token F_CASE
+%token F_DEFAULT
 %token F_BREAK
 %token F_CONTINUE
 %token F_RETURN
@@ -232,6 +233,8 @@ lista_casos:
 caso:
       F_CASE rotulo COLON { $<ival>$ = linha_erro; } lista_comandos
                                 { $$ = new_case_node($2, $5); $$->linha = $<ival>4; }
+    | F_DEFAULT COLON { $<ival>$ = linha_erro; } lista_comandos
+                                { $$ = new_default_node($4); $$->linha = $<ival>3; }
     ;
 
 rotulo:

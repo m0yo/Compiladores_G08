@@ -71,7 +71,7 @@ Tratam caracteres individuais, incluindo o suporte a sequÃªncias de escape padrÃ
 Palavras reservadas da linguagem, reconhecidas literalmente pelo scanner.
 
 * **Tipos:** `int` (`T_INT`), `float` (`T_FLOAT`), `char` (`T_CHAR`), `long` (`T_LONG`), `double` (`T_DOUBLE`)
-* **Controle de fluxo:** `if` (`F_IF`), `else` (`F_ELSE`), `while` (`F_WHILE`), `for` (`F_FOR`), `do` (`F_DO`), `switch` (`F_SWITCH`), `case` (`F_CASE`), `break` (`F_BREAK`), `continue` (`F_CONTINUE`), `return` (`F_RETURN`)
+* **Controle de fluxo:** `if` (`F_IF`), `else` (`F_ELSE`), `while` (`F_WHILE`), `for` (`F_FOR`), `do` (`F_DO`), `switch` (`F_SWITCH`), `case` (`F_CASE`), `default` (`F_DEFAULT`), `break` (`F_BREAK`), `continue` (`F_CONTINUE`), `return` (`F_RETURN`)
 
 ### Exemplos:
 | Lexema de Entrada | Token Esperado |

@@ -125,7 +125,14 @@ ASTNode *new_switch_node(ASTNode *expr, ASTNode *cases) {
 ASTNode *new_case_node(int value, ASTNode *stmts) {
     ASTNode *node = alloc_node(AST_CASE);
     node->data.case_stmt.value = value;
+    node->data.case_stmt.is_default = 0;
     node->data.case_stmt.stmts = stmts;
+    return node;
+}
+
+ASTNode *new_default_node(ASTNode *stmts) {
+    ASTNode *node = new_case_node(0, stmts);
+    node->data.case_stmt.is_default = 1;
     return node;
 }
 
@@ -496,12 +503,19 @@ resultado eval_ast(ASTNode *node){
         break;
     }
 
-    //switch: executa a partir do case que casa ate um break (fall-through, como em C)
+    //switch: executa a partir do case que casa (ou do default, se nenhum casar)
+    //ate um break, seguindo para os case seguintes (fall-through, como em C)
     case AST_SWITCH: {
         resultado v = eval_ast(node->data.switch_stmt.expr);
-        ASTNode *c = node->data.switch_stmt.cases;
-        while(c && c->data.case_stmt.value != (int)v.val)
-            c = c->next;
+        ASTNode *c, *padrao = NULL;
+        for(c = node->data.switch_stmt.cases; c; c = c->next){
+            if(c->data.case_stmt.is_default){
+                if(!padrao) padrao = c;
+            }else if(c->data.case_stmt.value == (int)v.val){
+                break;
+            }
+        }
+        if(!c) c = padrao;
         for(; c && controle_fluxo == CTRL_NORMAL; c = c->next)
             exec_list(c->data.case_stmt.stmts);
         if(controle_fluxo == CTRL_BREAK) //break sai do switch; continue/return seguem
@@ -692,7 +706,10 @@ void print_ast(ASTNode *node, int level) {
         break;
 
     case AST_CASE:
-        printf("CASE (%d)\n", node->data.case_stmt.value);
+        if (node->data.case_stmt.is_default)
+            printf("DEFAULT\n");
+        else
+            printf("CASE (%d)\n", node->data.case_stmt.value);
         print_ast(node->data.case_stmt.stmts, level + 1);
         break;
 

@@ -128,9 +128,10 @@ typedef struct ASTNode{
             struct ASTNode *cases;
         } switch_stmt;
 
-        //AST_CASE: case value: stmts
+        //AST_CASE: case value: stmts  (ou default: stmts, com is_default = 1)
         struct {
-            int value;
+            int value;              //ignorado quando is_default
+            int is_default;
             struct ASTNode *stmts;
         } case_stmt;
 
@@ -173,6 +174,7 @@ ASTNode *new_for_stmt_node(ASTNode *init, ASTNode *cond, ASTNode *step,
 ASTNode *new_do_while_node(ASTNode *body, ASTNode *cond);
 ASTNode *new_switch_node(ASTNode *expr, ASTNode *cases);
 ASTNode *new_case_node(int value, ASTNode *stmts);
+ASTNode *new_default_node(ASTNode *stmts);
 
 //Desvios
 ASTNode *new_break_node(void);
