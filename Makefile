@@ -48,6 +48,7 @@ $(TEST_AST): src/test_main.c $(C_SRCS) src/ast.h src/tabela_simbolos.h | $(BUILD
 test: $(EXEC) $(TEST_AST)
 	@echo "=== Rodando testes unitários da AST ==="
 	@./$(TEST_AST) > /dev/null && echo "[OK ] testes unitários da AST" || { echo "[FALHOU] testes unitários da AST"; exit 1; }
+	@$(MAKE) --no-print-directory test_lexer
 	
 	@printf "\n=== Rodando programas (saída comparada com .esperado) ===\n"
 	@falhas=0; for f in tests/programas/* tests/semantica/*; do \
