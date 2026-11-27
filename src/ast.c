@@ -394,6 +394,10 @@ resultado eval_ast(ASTNode *node){
                 res.val = -operand.val;
                 res.Type = operand.Type;
                 break;
+            case '+':
+                res.val = operand.val;
+                res.Type = operand.Type;
+                break;
             case '!':
                 res.val = (double)(!operand.val);
                 res.Type = TYPE_INT;
