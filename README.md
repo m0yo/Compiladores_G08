@@ -122,7 +122,6 @@ Os códigos numéricos são atribuídos pelo Bison conforme a ordem dos `%token`
 
 O `make test` imprime `[OK ]` para cada teste e termina com código de saída diferente de 0 se algum falhar. Veja a descrição de cada grupo em `docs/como_executar.md`.
 
-
 ### Saída e código de saída
 
 A linguagem não tem `printf`. Por padrão, o interpretador mostra o rastro do avaliador (`Declarado: x : int = 10`, `int x = 21`, `Resultado da expressão: ...`).

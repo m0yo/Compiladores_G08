@@ -15,7 +15,7 @@ Todos os arquivos gerados ficam em `build/`; os executáveis ficam na raiz do pr
 | Comando | O que faz |
 |---|---|
 | `make` | Compila lexer e parser juntos e gera o executável `parser_exe` |
-| `make test` | Roda todos os testes: unitários da AST, scanner, programas comparados com a saída esperada, programas que devem ser rejeitados e modo silencioso|
+| `make test` | Roda todos os testes: unitários da AST, scanner, programas comparados com a saída esperada, programas que devem ser rejeitados e modo silencioso |
 | `make test_lexer` | Roda só os testes do scanner (`tests/lexer/`) |
 | `make lexer_exe` | Compila só o lexer, em modo isolado, e gera o executável `lexer_exe` |
 | `make clean` | Remove `parser_exe`, `lexer_exe` e a pasta `build/` |
