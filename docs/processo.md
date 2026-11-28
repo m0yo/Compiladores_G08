@@ -43,7 +43,7 @@ As sprints vão de terça a segunda, de modo que cada uma termina antes da revis
 | 14 | 10/11 a 18/11 | Parser completo (declarações, atribuições, `if`, `while`, `for`, blocos); ações semânticas que criam a AST | Parser com declarações, expressões e todos os comandos de controle, documentado em `docs/parser.md` (PR #57); parser passa a construir a AST | Jefferson, Pedro |
 | 15 | 19/11 a 23/11 | Execução de ponta a ponta; análise semântica básica; `make test` | Programas completos executados de ponta a ponta (PR #58); strings, funções e structs retirados do lexer e do parser, com testes de rejeição (PR #59). A análise semântica e o `make test` ficaram para a sprint seguinte | Pedro, Jefferson |
 | 16 | 24/11 a 25/11 | Documentação, revisão cruzada, congelamento em 25/11 | `main` e `develop` reunidas (PRs #60 e #61); módulo de análise semântica com a linha de cada nó na AST; primeiros ajustes do `make test` | Jefferson, Maria Clara, Clarice |
-| Fechamento | 26/11 a 29/11 | Ensaio da entrevista | Escopos aninhados, operador `%`, `default` no `switch`, curto-circuito em `&&`/`||` e erro léxico para comentário não terminado (PR #81); `make test` com programas comparados com `.esperado` e programas que devem ser rejeitados (PR #79); `case` com constante negativa e `+` unário (PR #82); documentação atualizada. Ensaio da entrevista | Pedro, Clarice, Jefferson |
+| Fechamento | 26/11 a 29/11 | Ensaio da entrevista | Escopos aninhados, operador `%`, `default` no `switch`, curto-circuito em `&&`/`||` e erro léxico para comentário não terminado (PR #81); `make test` com programas comparados com `.esperado` e programas que devem ser rejeitados (PR #79); `case` com constante negativa e `+` unário (PR #82); testes do scanner (`tests/lexer/`, alvo `make test_lexer`) e de erros sintáticos (PR #83); README e tabela de estado atualizados (PR #84); documentação atualizada. Ensaio da entrevista | Pedro, Clarice, Jefferson |
 
 ### Ajustes no planejamento
 
@@ -71,6 +71,7 @@ As sprints vão de terça a segunda, de modo que cada uma termina antes da revis
 | Linha do código-fonte gravada em cada nó da AST | Permite mensagens com a linha na análise semântica. Em `case` e `default`, a linha vem de uma ação no meio da regra, porque ao reduzir a regra o lexer já leu o token seguinte | `src/parser.y`, `src/ast.c` |
 | Erros em `stderr` e código de saída 1 | Separa o resultado do programa dos diagnósticos e permite que o `make test` confira se um programa foi rejeitado | `src/parser.y` |
 | `make test` com saídas esperadas | Cada programa de teste tem um `.esperado` com `stdout` e `stderr`; os de `tests/erros/` precisam terminar com código diferente de zero. Assim uma regressão quebra o `make test` | `Makefile`; [Como executar](como_executar.md) |
+| Testes do scanner ignoram o código numérico dos tokens | O código muda quando um token é adicionado ao parser (`%` e `default` mudaram os demais); comparar só o lexema e a linha evita quebrar os `.esperado` a cada token novo | `Makefile` (`make test_lexer`), `tests/lexer/` |
 | Arquivos gerados fora do git | `lex.yy.c`, `parser.tab.*` e binários vão para `build/`, que é ignorado; evita conflitos em arquivos que ninguém edita | `.gitignore`, `Makefile` |
 | Documentação em MkDocs publicada automaticamente | O site é sempre gerado a partir da `main`, sem edição manual da `gh-docs` | `.github/workflows/deploy.yml` |
 
@@ -98,6 +99,9 @@ Sem strings não há `printf`. Hoje o que o usuário vê é o rastro que o avali
 | Comentário `/*` sem fechamento: o lexer mostrava o erro, mas o programa executava e saía com código 0 | Até 26/11 | Contador de erros léxicos consultado pelo `main` depois do `yyparse()`; o programa não executa e sai com código 1 | Issue #67, PR #81 |
 | O `make test` da análise semântica e o da issue #68 conflitaram no `Makefile`; `echo "\n"` imprimia o `\n` literal | 26/11 | Merge manual que manteve a estrutura da #68, incluiu `tests/semantica/` e trocou `echo` por `printf` | PRs #79 e #81 |
 | `case -1:` e `+x` davam erro sintático | Até 27/11 | Rótulos com sinal na gramática e avaliação do `+` unário | Issue #76, PR #82 |
+| O `make test` reprovava o que estava certo e aprovava o que estava errado: programas rejeitados de propósito no grupo dos que devem passar, `.esperado` executados como código, `return N` tratado como falha e um `#` dentro da receita que comentava o resto do comando | 26/11 | Revisão da branch do alvo `test`, apontando cada causa; grupos separados (válidos e rejeitados) comparando saídas | PR #79 |
+| O `+` unário passava no parser mas falhava na execução (`Operador unário desconhecido '+'`), e o teste não acusava porque não tinha `.esperado` | 27/11 | `+` tratado no avaliador e `.esperado` criado para o teste | PR #82 |
+| Nos testes do scanner, as mensagens de erro (`stderr`) saíam antes dos tokens (`stdout`) quando os dois iam juntos para um pipe | 27/11 | `setvbuf` linha a linha no `main` do lexer isolado; os `.esperado` seguem a ordem do programa de entrada | PR #83 |
 
 ---
 
