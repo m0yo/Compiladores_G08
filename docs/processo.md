@@ -76,9 +76,13 @@ As sprints vão de terça a segunda, de modo que cada uma termina antes da revis
 | Arquivos gerados fora do git | `lex.yy.c`, `parser.tab.*` e binários vão para `build/`, que é ignorado; evita conflitos em arquivos que ninguém edita | `.gitignore`, `Makefile` |
 | Documentação em MkDocs publicada automaticamente | O site é sempre gerado a partir da `main`, sem edição manual da `gh-docs` | `.github/workflows/deploy.yml` |
 
-### Decisão em aberto: saída de dados
+### Saída de dados
 
-Sem strings não há `printf`. Hoje o que o usuário vê é o rastro que o avaliador imprime a cada declaração e atribuição (por exemplo, `Declarado: x : int = 3`), seguido de `Programa retornou: N`. A issue #71 discute duas opções: manter o rastro e documentá-lo como a saída do interpretador, ou criar um comando embutido que imprime números, sem strings. A decisão ainda não foi tomada.
+Sem strings não há `printf`. A issue #71 considerou duas opções: (a) manter o rastro do avaliador e documentá-lo como a saída do interpretador, ou (b) criar um comando embutido que imprime números, sem strings. A equipe escolheu a **opção (a)**.
+
+A saída do interpretador é o rastro impresso a cada declaração, atribuição e expressão (`Declarado: x : int = 3`, `int x = 4`, `Resultado da expressão: 8`), seguido de `Programa retornou: N` quando o programa executa um `return`. Criar um comando de impressão exigiria mudar o lexer, a gramática e a AST, e o rastro já atende a demonstração e os testes, que comparam essa saída com os arquivos `.esperado`.
+
+Para programas com laços longos, em que o rastro imprime uma linha por atribuição, a opção `-q` (ou `--quiet`) do `parser_exe` desliga o rastro: só aparecem o `Programa retornou: N`, os erros e os avisos. A mudança fica toda no avaliador (`definir_rastro_execucao` em `src/ast.c`) e no `main`, sem alterar tokens, gramática ou nós da AST (PR #88).
 
 ---
 
