@@ -207,6 +207,17 @@ echo 'else x = 1;' | ./parser_exe # else sem if        -> Erro sintático, saíd
 echo 'int x = 1;' | ./parser_exe  # válido              -> "Declarado: x : int = 1", código 0
 ```
 
+### Memória em erros sintáticos
+
+Quando a análise falha, o Bison descarta os símbolos que estavam na pilha: nós da AST ainda não ligados ao programa e nomes de `IDENT` copiados pelo lexer. Sem tratamento, essa memória vazava (de 58 a 398 bytes por programa rejeitado, segundo o LeakSanitizer). Duas declarações no `parser.y` indicam ao Bison como liberar cada tipo:
+
+```bash
+    %destructor { free_ast($$); } <node>
+    %destructor { free($$); } <sval>
+```
+
+O Bison só chama o destrutor em símbolos **descartados**; os que uma regra já consumiu (por exemplo, o `IDENT` que `new_id_node` copiou e liberou) não passam por ele, então não há liberação dupla. Os comandos que já tinham sido ligados à raiz antes do erro são liberados pelo `main`, que chama `free_ast(raiz)` quando `yyparse()` falha. O alvo `make test_vazamento` confere isso (veja [Como executar](como_executar.md#testes)).
+
 ---
 
 ## Veja também
