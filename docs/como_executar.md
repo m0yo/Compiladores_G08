@@ -107,6 +107,14 @@ make
 sh tests/quiet/test_quiet.sh ./parser_exe
 ```
 
+Para conferir vazamento de memória, inclusive nos programas rejeitados:
+
+```bash
+    make test_vazamento
+```
+
+O alvo compila o parser com AddressSanitizer (`build/parser_asan`) e roda todos os programas de `tests/programas/`, `tests/semantica/` e `tests/erros/`. Ele falha se o sanitizador acusar vazamento ou acesso inválido. Fica fora do `make test` porque depende do suporte a `-fsanitize=address` do compilador (o `gcc` no Linux tem).
+
 Cada verificação imprime `[OK ]` ou `[FALHOU]`. Ao final, o programa mostra `TODOS OS TESTES PASSARAM (0 falha(s))` e devolve código de saída `0`; se algum teste falhar, mostra `HOUVE FALHAS` e devolve `1`. A saída também inclui trechos impressos pelo avaliador (`Declarado: ...`, `int x = ...`) e a árvore do laço `for` desenhada por `print_ast`.
 
 ## Visualizar a documentação

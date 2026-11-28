@@ -133,6 +133,13 @@ static ASTNode *anexar(ASTNode *a, ASTNode *b) {
 %type <tipo> tipo
 %type <ival> rotulo
 
+/* Libera os valores que o Bison descarta quando o programa tem erro sintático:
+   nós da AST que ainda não foram ligados à raiz e nomes de IDENT copiados pelo
+   lexer. O Bison só chama o destrutor em símbolos descartados, nunca nos que
+   uma regra já consumiu, então não há liberação dupla. */
+%destructor { free_ast($$); } <node>
+%destructor { free($$); } <sval>
+
 %%
 
 programa:
@@ -327,6 +334,8 @@ int main(int argc, char **argv) {
     }
 
     if (yyparse() != 0) {
+        /* comandos já ligados à raiz antes do erro (o resto o %destructor libera) */
+        free_ast(raiz);
         if (arquivo) fclose(yyin);
         return 1;
     }
