@@ -9,6 +9,13 @@
 //linha atual do lexer (definida em lexer.l; test_main.c define a sua)
 extern int linha_erro;
 
+/* O rastro de execução permanece habilitado por padrão. */
+static int rastro_execucao = 1;
+
+void definir_rastro_execucao(int habilitado) {
+    rastro_execucao = habilitado != 0;
+}
+
 //aloca um no com tipo definido
 static ASTNode *alloc_node(TipoNo tipo) {
     ASTNode *node = (ASTNode *)malloc(sizeof(ASTNode));
@@ -413,47 +420,75 @@ resultado eval_ast(ASTNode *node){
     case AST_ASSIGN: {
         resultado expr = eval_ast(node->data.assign.expr);
         SymEntry *entry = buscar_simbolo(node->data.assign.name);
-        if(!entry){
-            fprintf(stderr, "Erro: variável '%s' não declarada!\n", node->data.assign.name);
+
+        if (!entry) {
+            fprintf(stderr, "Erro: variável '%s' não declarada!\n",
+                    node->data.assign.name);
             exit(EXIT_FAILURE);
         }
-        entry->value = to_sym_value(entry->type, expr.val); //converte para o tipo da variavel
-        printf("%s %s = ", tipo_para_string(entry->type), node->data.assign.name);
-        print_sym_value(entry->type, sym_val_as_double(entry));
-        printf("\n");
+
+        entry->value = to_sym_value(entry->type, expr.val);
+
+        if (rastro_execucao) {
+            printf("%s %s = ", tipo_para_string(entry->type),
+                   node->data.assign.name);
+            print_sym_value(entry->type, sym_val_as_double(entry));
+            printf("\n");
+        }
+
         break;
-    }  
-    
+    }
+ 
     //declaracao
     case AST_DECL: {
         double init_val = 0.0;
+
         if (node->data.decl.init) {
             resultado r = eval_ast(node->data.decl.init);
             init_val = r.val;
         }
+
         SymValue v = to_sym_value(node->data.decl.type, init_val);
-        inserir_simbolo(node->data.decl.name, node->data.decl.type, v);
-        if (node->data.decl.init) {
-            printf("Declarado: %s : %s = ", node->data.decl.name,
-                   tipo_para_string(node->data.decl.type));
-            print_sym_value(node->data.decl.type,
-                        sym_val_as_double(buscar_simbolo(node->data.decl.name)));
-            printf("\n");
-        } else {
-            printf("Declarado: %s : %s\n", node->data.decl.name,
-                   tipo_para_string(node->data.decl.type));
+        inserir_simbolo(node->data.decl.name,
+                        node->data.decl.type, v);
+
+        if (rastro_execucao) {
+            if (node->data.decl.init) {
+                printf("Declarado: %s : %s = ",
+                       node->data.decl.name,
+                       tipo_para_string(node->data.decl.type));
+
+                print_sym_value(
+                    node->data.decl.type,
+                    sym_val_as_double(
+                        buscar_simbolo(node->data.decl.name)
+                    )
+                );
+
+                printf("\n");
+            } else {
+                printf("Declarado: %s : %s\n",
+                       node->data.decl.name,
+                       tipo_para_string(node->data.decl.type));
+            }
         }
+
         break;
     }
 
     //expressoes como comando (expr;)
     case AST_EXPR_STMT: {
         resultado expr = eval_ast(node->data.expr_stmt.expr);
-        printf("Resultado da expressão: ");
-        print_sym_value(expr.Type, expr.val);
-        printf("\n");
+
+        if (rastro_execucao) {
+            printf("Resultado da expressão: ");
+            print_sym_value(expr.Type, expr.val);
+            printf("\n");
+        }
+
         break;
     }
+
 
     //controle de fluxo
     //if/ if-else

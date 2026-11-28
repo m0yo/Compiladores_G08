@@ -14,6 +14,7 @@
 %{
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "ast.h"
 #include "tabela_simbolos.h"
 #include "semantica.h"
@@ -280,47 +281,66 @@ void yyerror(const char *s) {
     fprintf(stderr, "Erro sintático na linha %d: %s\n", linha_erro, s);
 }
 
+
 /*
- * Uso: ./parser_exe [-a] [arquivo.c]
- *   -a       imprime a AST antes de executar
- *   arquivo  código-fonte (sem arquivo, lê da entrada padrão)
+ * Uso: ./parser_exe [-a] [-q|--quiet] [arquivo.c]
+ *   -a           imprime a AST antes de executar
+ *   -q, --quiet  desabilita o rastro de execução
+ *   arquivo      código-fonte (sem arquivo, lê da entrada padrão)
  *
- * Código de saída: 1 em erro sintático ou de execução; se o programa
- * executar "return expr;", o valor de expr (como o main de um programa C);
- * senão 0.
+ * O modo silencioso preserva o resultado do return,
+ * os erros e os avisos.
+ *
+ * Código de saída: 1 em caso de erro; o valor do return
+ * quando executado; ou 0 nos demais casos.
  */
 int main(int argc, char **argv) {
     int mostrar_ast = 0;
+    int modo_silencioso = 0;
     const char *arquivo = NULL;
 
     for (int i = 1; i < argc; i++) {
-        if (argv[i][0] == '-' && argv[i][1] == 'a' && argv[i][2] == '\0')
+        if (strcmp(argv[i], "-a") == 0) {
             mostrar_ast = 1;
-        else
+        } else if (strcmp(argv[i], "-q") == 0 ||
+                   strcmp(argv[i], "--quiet") == 0) {
+            modo_silencioso = 1;
+        } else if (argv[i][0] == '-' || arquivo != NULL) {
+            fprintf(stderr,
+                    "Uso: %s [-a] [-q|--quiet] [arquivo.c]\n",
+                    argv[0]);
+            return 1;
+        } else {
             arquivo = argv[i];
+        }
     }
+
+    definir_rastro_execucao(!modo_silencioso);
 
     if (arquivo) {
         yyin = fopen(arquivo, "r");
+
         if (!yyin) {
             perror(arquivo);
             return 1;
         }
     }
 
-    if (yyparse() != 0)
+    if (yyparse() != 0) {
+        if (arquivo) fclose(yyin);
         return 1;
+    }
 
     ASTNode *programa = new_block_node(raiz);
 
-    /* erro léxico (ex.: comentário de bloco não fechado): não executa */
+    /* Erro léxico: não executa o programa. */
     if (erros_lexicos > 0) {
         free_ast(programa);
         if (arquivo) fclose(yyin);
         return 1;
     }
 
-    /* análise semântica: se houver erro, o programa não é executado */
+    /* Análise semântica: se houver erro, não executa. */
     if (analisar_semantica(programa) > 0) {
         free_ast(programa);
         limpar_tabela();
@@ -337,25 +357,31 @@ int main(int argc, char **argv) {
     eval_ast(programa);
 
     int codigo = 0;
+
     switch (controle_fluxo) {
         case CTRL_RETURN:
             codigo = (int)valor_retorno.val;
             printf("Programa retornou: %d\n", codigo);
             break;
+
         case CTRL_BREAK:
             fprintf(stderr, "Erro: 'break' fora de laço ou switch\n");
             codigo = 1;
             break;
+
         case CTRL_CONTINUE:
             fprintf(stderr, "Erro: 'continue' fora de laço\n");
             codigo = 1;
             break;
+
         default:
             break;
     }
 
     free_ast(programa);
     limpar_tabela();
+
     if (arquivo) fclose(yyin);
+
     return codigo;
 }
