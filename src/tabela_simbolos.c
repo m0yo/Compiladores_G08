@@ -7,6 +7,9 @@
 de uma lista encadeada de entradas que tem o mesmo indice de hash*/
 static SymEntry *tabela[MAX_TAMANHO];
 
+//nivel de escopo atual (0 = mais externo)
+static int nivel_atual = 0;
+
 
 //calcula o indice de hash para uma string
 static unsigned int hash(const char *nome) {
@@ -30,9 +33,44 @@ SymEntry *buscar_simbolo(char *nome){
     return NULL; //não encontrou
 }
 
+/*
+como a insercao e no inicio do bucket e as variaveis de um escopo interno
+sao inseridas depois das de fora, buscar_simbolo ja encontra a mais interna
+*/
+SymEntry *buscar_simbolo_no_escopo_atual(char *nome){
+    SymEntry *entry = buscar_simbolo(nome);
+    return (entry && entry->nivel == nivel_atual) ? entry : NULL;
+}
+
+void entrar_escopo(void){
+    nivel_atual++;
+}
+
+//remove de cada bucket as entradas declaradas no escopo que esta sendo fechado
+void sair_escopo(void){
+    for (int i = 0; i < MAX_TAMANHO; i++) {
+        SymEntry **p = &tabela[i];
+        while (*p) {
+            if ((*p)->nivel == nivel_atual) {
+                SymEntry *temp = *p;
+                *p = temp->next;
+                free(temp->name);
+                free(temp);
+            } else {
+                p = &(*p)->next;
+            }
+        }
+    }
+    if (nivel_atual > 0) nivel_atual--;
+}
+
+int escopo_atual(void){
+    return nivel_atual;
+}
+
 SymEntry *inserir_simbolo(char *nome, SymType tipo, SymValue valor) {
-    // Verifica se já existe e atualiza o valor caso exista
-    SymEntry *entrada = buscar_simbolo(nome);
+    // Se ja existe no escopo atual, so atualiza o valor
+    SymEntry *entrada = buscar_simbolo_no_escopo_atual(nome);
     if(entrada){
         entrada->value = valor; //atualiza o valor existente
         return entrada;
@@ -49,6 +87,7 @@ SymEntry *inserir_simbolo(char *nome, SymType tipo, SymValue valor) {
     entrada->name = strdup(nome);
     entrada->type = tipo;
     entrada->value = valor;
+    entrada->nivel = nivel_atual;
     entrada->next = tabela[idx]; //insere no inicio da lista encadeada do bucket
     tabela[idx] = entrada; //atualiza o ponteiro do bucket para a nova
     return entrada; //retorna ponteiro para a nova entrada
@@ -99,4 +138,5 @@ void limpar_tabela(void) {
         }
         tabela[i] = NULL;
     }
+    nivel_atual = 0;
 }

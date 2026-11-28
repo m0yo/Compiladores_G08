@@ -1,0 +1,8 @@
+Declarado: a : int = 0
+Declarado: b : int = 0
+Declarado: c : int = 0
+int a = 10
+int a = 110
+int b = 5
+int c = 3
+Programa retornou: 110053

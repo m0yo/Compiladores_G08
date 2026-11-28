@@ -38,8 +38,8 @@ Os tokens são declarados em `parser.y` e produzidos pelo analisador léxico (ve
 ### Terminais sem valor semântico
 
 * **Tipos:** `T_INT`, `T_FLOAT`, `T_CHAR`, `T_DOUBLE`, `T_LONG`
-* **Controle de fluxo:** `F_IF`, `F_ELSE`, `F_WHILE`, `F_FOR`, `F_DO`, `F_SWITCH`, `F_CASE`, `F_BREAK`, `F_CONTINUE`, `F_RETURN`
-* **Operadores:** `O_PLUS`, `O_MINUS`, `O_MULTI`, `O_DIV`, `O_ASSIGN`, `R_EQ`, `R_NE`, `R_LT`, `R_GT`, `R_LE`, `R_GE`, `DM_AND`, `DM_OR`, `DM_NOT`
+* **Controle de fluxo:** `F_IF`, `F_ELSE`, `F_WHILE`, `F_FOR`, `F_DO`, `F_SWITCH`, `F_CASE`, `F_DEFAULT`, `F_BREAK`, `F_CONTINUE`, `F_RETURN`
+* **Operadores:** `O_PLUS`, `O_MINUS`, `O_MULTI`, `O_DIV`, `O_MOD`, `O_ASSIGN`, `R_EQ`, `R_NE`, `R_LT`, `R_GT`, `R_LE`, `R_GE`, `DM_AND`, `DM_OR`, `DM_NOT`
 * **Delimitadores:** `LBRACE`, `RBRACE`, `LBRACKET`, `RBRACKET`, `LPAREN`, `RPAREN`, `COLON`, `SEMICOLON`
 
 ---
@@ -91,12 +91,14 @@ O símbolo inicial é `programa`: uma sequência, possivelmente vazia, de comand
 <lista-casos>    ::= /* vazio */
                    | <lista-casos> <caso>
 <caso>           ::= F_CASE <rotulo> COLON <lista-comandos>
+                   | F_DEFAULT COLON <lista-comandos>
 <rotulo>         ::= L_INT | L_CHAR
 
 <expressao> ::= <expressao> O_PLUS <expressao>
               | <expressao> O_MINUS <expressao>
               | <expressao> O_MULTI <expressao>
               | <expressao> O_DIV <expressao>
+              | <expressao> O_MOD <expressao>
               | O_MINUS <expressao>                  (* %prec UMINUS *)
               | <expressao> DM_AND <expressao>
               | <expressao> DM_OR <expressao>
@@ -125,7 +127,7 @@ Da menor para a maior precedência (as linhas de baixo prendem mais forte):
 | 3 | esquerda | `R_EQ` `R_NE` |
 | 4 | esquerda | `R_LT` `R_GT` `R_LE` `R_GE` |
 | 5 | esquerda | `O_PLUS` `O_MINUS` |
-| 6 | esquerda | `O_MULTI` `O_DIV` |
+| 6 | esquerda | `O_MULTI` `O_DIV` `O_MOD` |
 | 7 | — (`%precedence`) | `DM_NOT` |
 | 8 | — (`%precedence`) | `UMINUS` (menos unário) |
 
@@ -138,7 +140,6 @@ Da menor para a maior precedência (as linhas de baixo prendem mais forte):
 * Erros sintáticos são impressos em `stderr` como `Erro sintático na linha N: <mensagem>`, e o código de saída é `1`.
 * `break`, `continue` e `return` são aceitos em qualquer lugar pela gramática. Um `break`/`continue` fora de laço só dá erro na execução; `return` no nível do programa encerra a execução.
 * `LBRACKET` e `RBRACKET` são produzidos pelo lexer, mas nenhuma regra os consome ainda.
-* `default` não existe como token no lexer (chega como `IDENT`), então o `switch` só aceita `case`.
 
 ---
 
@@ -200,7 +201,7 @@ Explicação das regras de `<comando>`:
 * **Condicional (`if` e `if-else`):** executa um comando se a expressão entre parênteses for verdadeira (diferente de zero) e, opcionalmente, outro comando se for falsa (`AST_IF`).
 * **Laço `while`:** repete um comando enquanto a condição for verdadeira (`AST_WHILE`).
 * **Laço `for`:** loop controlado por inicialização, condição e passo (`AST_FOR`).
-* **Bloco de comandos:** `LBRACE <lista-comandos> RBRACE` agrupa vários comandos entre chaves (`AST_BLOCK`). Na implementação atual o bloco **não** cria um novo escopo: a tabela de símbolos é única.
+* **Bloco de comandos:** `LBRACE <lista-comandos> RBRACE` agrupa vários comandos entre chaves (`AST_BLOCK`). O bloco cria um novo escopo: as variáveis declaradas dentro dele só existem até o `}`.
 
 ### 4.4 Componentes do `for`
 
@@ -268,4 +269,4 @@ Para manter o interpretador focado no aprendizado dos conceitos fundamentais de 
 * Sem suporte a definição nem chamada de funções.
 * Sem importação de bibliotecas externas ou uso de funções de cabeçalhos complexos do C padrão.
 
-Também ficam fora, por enquanto, arrays e `default` no `switch`. Programas que usam strings, funções ou structs são rejeitados com erro léxico ou sintático (veja `tests/escopo/`). Já `do-while`, `switch/case`, `break`, `continue` e `return` são reconhecidos pelo parser e executados pelo avaliador.
+Também ficam fora, por enquanto, arrays. Programas que usam strings, funções ou structs são rejeitados com erro léxico ou sintático (veja `tests/erros/`). Já `do-while`, `switch/case/default`, `break`, `continue` e `return` são reconhecidos pelo parser e executados pelo avaliador.

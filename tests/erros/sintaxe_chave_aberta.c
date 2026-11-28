@@ -1,0 +1,4 @@
+// bloco nao fecha
+int x = 1;
+while (x < 3) {
+    x = x + 1;

@@ -1,0 +1,5 @@
+# Arquivos de texto sempre com quebra de linha LF, inclusive no Windows.
+# Os testes comparam a saída do parser_exe (LF) com os arquivos .esperado;
+# com core.autocrlf=true o git gravaria os .esperado em CRLF e todos os
+# testes acusariam diferença.
+* text=auto eol=lf

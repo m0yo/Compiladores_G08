@@ -1,0 +1,4 @@
+Erro semântico na linha 3: variável 'a' já declarada
+Erro semântico na linha 4: variável 'b' não declarada
+Aviso semântico na linha 5: divisão por zero
+Erro semântico na linha 6: 'continue' fora de laço

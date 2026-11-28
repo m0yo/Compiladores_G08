@@ -1,6 +1,6 @@
 # Compiladores_G08
 
-> ⚠️ **Projeto em desenvolvimento.** O pipeline lexer → parser → AST → avaliador está conectado: o interpretador executa programas com declarações, atribuições, expressões e comandos de controle (`if`, `while`, `do-while`, `for`, `switch`, `break`, `continue`, `return`). Ainda faltam análise semântica separada e outros recursos (veja o checklist; funções, strings e structs estão fora do escopo). Este README serve como guia de orientação para quem for contribuir ou acompanhar o projeto.
+> **Estado:** o pipeline completo (lexer → parser → AST → análise semântica → avaliador) está conectado e testado. O interpretador executa programas com declarações (`int`, `float`, `char`), atribuições, expressões (inclusive `%`, `&&` e `||` com curto-circuito), escopos de bloco e os comandos `if`, `while`, `do-while`, `for`, `switch` (com `default`), `break`, `continue` e `return`. Antes de executar, ele faz uma análise semântica e recusa programas com erro. Funções, strings e structs estão **fora do escopo** de propósito (veja [Limitações conhecidas](#limitações-conhecidas)). Este README serve como guia de orientação para quem for contribuir ou acompanhar o projeto.
 
 Documentação publicada: <https://m0yo.github.io/Compiladores_G08/>
 
@@ -12,16 +12,18 @@ Este projeto é um **interpretador para a linguagem C, implementado na própria 
 
 ## Estado atual do projeto
 
-- ✅ **Lexer (análise léxica)** — implementado em Flex (`src/lexer.l`), reconhece palavras-chave, operadores, literais (`int`, `float` e `char`), identificadores, delimitadores e comentários (`//` e `/* */`), retornando os tokens e os valores semânticos (`yylval`) e contando as linhas para mensagens de erro
+- ✅ **Lexer (análise léxica)** — implementado em Flex (`src/lexer.l`), reconhece palavras-chave, operadores, literais (`int`, `float` e `char`), identificadores, delimitadores e comentários (`//` e `/* */`), retornando os tokens e os valores semânticos (`yylval`) e contando as linhas para mensagens de erro; comentário de bloco não fechado e caractere desconhecido são erros léxicos e o programa não é executado
 - ✅ **Parser (análise sintática, com Bison)** — `src/parser.y` reconhece declarações, atribuições, expressões e os comandos `if`/`else`, `while`, `do-while`, `for`, `switch`/`case`, `break`, `continue` e `return`, e constrói a AST com ações semânticas
 - ✅ **Árvore Sintática Abstrata (AST)** — `src/ast.c` e `src/ast.h`: nós para todos os comandos do parser, construtores, impressão (`print_ast`) e liberação (`free_ast`)
-- 🚧 **Tabela de símbolos** — `src/tabela_simbolos.c` e `.h`: tabela hash com os tipos `int`, `float` e `char`, escopo único (global)
-- 🚧 **Avaliador (`eval_ast`)** — executa todos os comandos acima, chamado pelo `main` do parser; `long` e `double` são tratados como `int` e `float`
-- ✅ Testes automatizados com `make test` (unitários da AST + programas de ponta a ponta em `tests/programas/`)
-- ⬜ Saída de dados na linguagem (`printf`) e `int main() { ... }`
-- ⬜ Análise semântica separada da execução (verificação de tipos e escopos; hoje os erros são detectados em tempo de execução)
-- ⬜ Tipos próprios para `long`/`double` e `default` no `switch`
-- ⬜ Arrays e ponteiros (funções, strings e structs estão fora do escopo; veja `tests/escopo/`)
+- ✅ **Tabela de símbolos** — `src/tabela_simbolos.c` e `.h`: tabela hash com os tipos `int`, `float` e `char`, escopos aninhados (bloco, `for` e `switch`)
+- ✅ **Avaliador (`eval_ast`)** — executa todos os comandos acima, chamado pelo `main` do parser; `&&` e `||` têm curto-circuito, `%` exige operandos inteiros e `long`/`double` são tratados como `int`/`float`
+- ✅ **Análise semântica** — `src/semantica.c` e `.h`: percorre a AST antes de executar e rejeita o programa com `Erro semântico na linha N: ...` (variável não declarada ou redeclarada, `break`/`continue` fora de laço, `case`/`default` repetido, `%` com `float`); conversão de `float`, variável sem valor e divisão por zero literal geram só um aviso (veja `docs/semantica.md`)
+- ✅ Testes automatizados com `make test`, cobrindo cada fase: unitários da AST, scanner (`tests/lexer/`), programas de ponta a ponta (`tests/programas/`), análise semântica (`tests/semantica/`), programas que devem ser rejeitados (`tests/erros/`) e modo silencioso (`tests/quiet/`)
+- ✅ **Saída de dados** — rastro de execução como saída padrão e modo silencioso (`-q` ou `--quiet`), preservando o valor do `return`, os erros e os avisos
+- ⬜ Verificação de tipos mais completa (hoje só há o aviso de conversão `float` → `int`/`char` e o erro de `%` com `float`)
+- ⬜ Tipos próprios para `long`/`double`
+- ⬜ Arrays e ponteiros (funções, strings e structs estão fora do escopo; veja `tests/erros/`)
+- ⬜ Operadores de incremento e atribuição composta (`++`, `+=` e afins)
 
 > Atualize este checklist conforme o projeto avança — é a forma mais rápida de qualquer pessoa entender "onde estamos" sem ler código.
 
@@ -40,7 +42,7 @@ código-fonte (.c)
 [ AST + Tabela de símbolos ] → estruturas do programa -> implementadas (src/ast.*, src/tabela_simbolos.*)
       │
       ▼
-[ Análise semântica ] → valida tipos, escopos, declarações -> não iniciada
+[ Análise semântica ] → declarações e escopos, break/continue, case/default repetido, % com float (+ avisos) -> pronta (src/semantica.*)
       │
       ▼
  [ Interpretador ] → percorre a AST e executa o programa (eval_ast) -> pronto para o subconjunto atual
@@ -59,13 +61,18 @@ O lexer e o parser compartilham os mesmos tokens e tipos de valor semântico (`y
 │   ├── lexer.l              # regras do analisador léxico (Flex)
 │   ├── parser.y             # gramática do analisador sintático (Bison)
 │   ├── ast.h / ast.c        # AST, avaliador (eval_ast), print_ast e free_ast
-│   ├── tabela_simbolos.h/.c # tabela de símbolos (hash table)
+│   ├── tabela_simbolos.h/.c # tabela de símbolos (hash table com escopos)
+│   ├── semantica.h/.c       # análise semântica (roda antes do avaliador)
 │   └── test_main.c          # testes da AST, do avaliador e da tabela de símbolos
 ├── tests/
 │   ├── teste_lexer.txt      # entrada para testar o lexer
 │   ├── teste_parser.txt     # programa com todos os comandos do parser
-│   └── programas/           # programas .c + saída .esperado (testes de ponta a ponta)
-├── Makefile                 # compila lexer + parser (arquivos gerados ficam em build/)
+│   ├── lexer/               # casos do scanner (válidos e inválidos) + .esperado
+│   ├── programas/           # programas .c + saída .esperado (parser e execução)
+│   ├── semantica/           # programas com erros e avisos semânticos + .esperado
+│   ├── erros/               # programas que devem ser rejeitados (+ .esperado opcional)
+│   └── quiet/               # testes do modo silencioso (-q e --quiet)
+├── Makefile                 # compila lexer + parser (arquivos gerados ficam em build/) e roda os testes
 ├── mkdocs.yml               # configuração do site de documentação
 ├── LICENSE
 └── README.md
@@ -83,12 +90,19 @@ make
 ./parser_exe tests/teste_parser.txt
 echo 'int x = 10; x = x * 2 + 1;' | ./parser_exe
 
+# executa em modo silencioso, sem imprimir o rastro intermediário
+./parser_exe -q tests/quiet/laco_longo.c
+./parser_exe --quiet < tests/quiet/laco_longo.c
+
 # compila só o lexer, imprimindo os tokens reconhecidos
 make lexer_exe
 ./lexer_exe < tests/teste_lexer.txt
 
-# testes unitários da AST + programas de tests/programas/
+# todos os testes: AST, scanner, programas, erros e modo silencioso
 make test
+
+# só os testes do scanner
+make test_lexer
 
 # remove os arquivos gerados
 make clean
@@ -106,11 +120,29 @@ Token: 299 | Lexema: ';' | Linha: 1
 
 Os códigos numéricos são atribuídos pelo Bison conforme a ordem dos `%token` em `src/parser.y`, então mudam quando tokens são adicionados ou removidos.
 
-O `make test` imprime `[OK ]` para cada teste e termina com código de saída diferente de 0 se algum falhar.
+O `make test` imprime `[OK ]` para cada teste e termina com código de saída diferente de 0 se algum falhar. Veja a descrição de cada grupo em `docs/como_executar.md`.
+
+### Saída e código de saída
+
+A linguagem não tem `printf`. Por padrão, o interpretador mostra o rastro do avaliador (`Declarado: x : int = 10`, `int x = 21`, `Resultado da expressão: ...`).
+
+As opções `-q` e `--quiet` permitem executar programas em modo silencioso, suprimindo a impressão de declarações, atribuições e resultados intermediários de expressões. O valor do `return`, os erros e os avisos continuam sendo apresentados. A opção `-a` pode ser utilizada em conjunto com o modo silencioso para visualizar a AST.
+
+`return expr;` encerra o programa e define o código de saída do `parser_exe` (módulo 256 no Linux). O valor inteiro completo aparece em `Programa retornou: N`, inclusive no modo silencioso.
+
+Erros léxicos, sintáticos e semânticos terminam com código `1` e **nada é executado**. Erros de execução também terminam com código `1`, enquanto avisos (`Aviso semântico na linha N: ...`) não impedem a execução. Por isso, para saber se houve erro, olhe a mensagem e não só o código de saída: `return 1;` também sai com `1`.
+
+## Limitações conhecidas
+
+- **Fora do escopo, por decisão do grupo:** strings, funções e structs são rejeitados com erro (testados em `tests/erros/`). Também não há arrays nem ponteiros.
+- **Sem `printf`:** a saída padrão é o rastro do avaliador, que pode ser suprimido com `-q` ou `--quiet`. Não há comando de impressão na linguagem interpretada.
+- **Tipos:** só `int`, `float` e `char`. `long` e `double` são tratados como `int` e `float`, e o estouro de `int` é silencioso.
+- **Operadores:** não há `++`, `+=` e afins.
+- **Erros sintáticos:** o parser para no primeiro erro e informa só a linha (`syntax error`).
 
 ## Documentação
 
-A documentação detalhada do projeto (lexer, expressões regulares, gramática, AST e tabela de símbolos) está em `docs/` e pode ser visualizada localmente com o MkDocs. O tema Material é necessário, pois é o configurado em `mkdocs.yml`:
+A documentação detalhada do projeto (lexer, expressões regulares, gramática, parser, AST, tabela de símbolos e análise semântica) está em `docs/` e pode ser visualizada localmente com o MkDocs. O tema Material é necessário, pois é o configurado em `mkdocs.yml`:
 
 ```bash
 pip install mkdocs mkdocs-material
@@ -128,10 +160,16 @@ Isso sobe um servidor local (geralmente em `http://127.0.0.1:8000`) com o site d
 - [x] Implementar o parser (declarações e comandos)
 - [x] Conectar o parser à AST (ações semânticas que chamam os construtores `new_*_node`)
 - [x] Executar programas completos (parser → AST → `eval_ast`)
-- [ ] Implementar análise semântica (tipos, escopos)
-- [x] Suporte a estruturas de controle (`if`, `while`, `do-while`, `for`, `switch`, `break`, `continue`, `return`; falta `default`)
+- [x] Implementar análise semântica (declarações, `break`/`continue`, `case`/`default` repetido, `%` com `float`, avisos)
+- [x] Escopos de bloco
+- [x] Curto-circuito em `&&` e `||` e operador `%`
+- [x] Suporte a estruturas de controle (`if`, `while`, `do-while`, `for`, `switch`, `break`, `continue`, `return` e `default`)
+- [x] Erro léxico para comentário de bloco não fechado
+- [x] `case` com constante negativa (`case -1:`) e `+` unário
+- [x] Testes automatizados cobrindo cada etapa do pipeline (scanner, parser, semântica e execução)
+- [ ] Verificação de tipos mais completa
+- [x] Definir a saída de dados do interpretador (rastro de execução e modo silencioso com `-q` e `--quiet`)
 - [ ] Suporte a arrays e ponteiros (funções, strings e structs estão fora do escopo)
-- [ ] Testes automatizados cobrindo cada etapa do pipeline (`make test` já cobre a AST e o pipeline completo; falta ampliar os casos, inclusive de erro)
 
 ## Como contribuir
 

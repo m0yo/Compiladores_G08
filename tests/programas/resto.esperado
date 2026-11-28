@@ -1,0 +1,23 @@
+Declarado: a : int = 2
+Declarado: b : int = -1
+Declarado: c : int = 8
+Declarado: ch : char = 'A'
+Declarado: d : int = 5
+Declarado: pares : int = 0
+Declarado: i : int = 0
+int pares = 0
+int i = 1
+int i = 2
+int pares = 2
+int i = 3
+int i = 4
+int pares = 6
+int i = 5
+int i = 6
+int pares = 12
+int i = 7
+int i = 8
+int pares = 20
+int i = 9
+int i = 10
+Programa retornou: 2095

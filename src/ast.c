@@ -6,6 +6,16 @@
 #include "ast.h"
 #include "tabela_simbolos.h"
 
+//linha atual do lexer (definida em lexer.l; test_main.c define a sua)
+extern int linha_erro;
+
+/* O rastro de execução permanece habilitado por padrão. */
+static int rastro_execucao = 1;
+
+void definir_rastro_execucao(int habilitado) {
+    rastro_execucao = habilitado != 0;
+}
+
 //aloca um no com tipo definido
 static ASTNode *alloc_node(TipoNo tipo) {
     ASTNode *node = (ASTNode *)malloc(sizeof(ASTNode));
@@ -15,6 +25,7 @@ static ASTNode *alloc_node(TipoNo tipo) {
     }
     node->tipo = tipo;
     node->next = NULL;
+    node->linha = linha_erro;
     return node;
 }
 
@@ -121,7 +132,14 @@ ASTNode *new_switch_node(ASTNode *expr, ASTNode *cases) {
 ASTNode *new_case_node(int value, ASTNode *stmts) {
     ASTNode *node = alloc_node(AST_CASE);
     node->data.case_stmt.value = value;
+    node->data.case_stmt.is_default = 0;
     node->data.case_stmt.stmts = stmts;
+    return node;
+}
+
+ASTNode *new_default_node(ASTNode *stmts) {
+    ASTNode *node = new_case_node(0, stmts);
+    node->data.case_stmt.is_default = 1;
     return node;
 }
 
@@ -272,6 +290,21 @@ resultado eval_ast(ASTNode *node){
         //operacao binaria
         case AST_BINARYOP: {
             resultado left = eval_ast(node->data.binaryop.left);
+
+            //curto-circuito (como em C): o lado direito de && so e avaliado
+            //se o esquerdo e verdadeiro, e o de || so se o esquerdo e falso
+            if(node->data.binaryop.op == '&' || node->data.binaryop.op == '|'){
+                int l = left.val != 0;
+                if(node->data.binaryop.op == '&' ? !l : l){
+                    res.val = (double)l;
+                }else{
+                    resultado right = eval_ast(node->data.binaryop.right);
+                    res.val = (double)(right.val != 0);
+                }
+                res.Type = TYPE_INT;
+                break;
+            }
+
             resultado right = eval_ast(node->data.binaryop.right);
             SymType rtype = promote_type(left.Type, right.Type);   
             
@@ -310,16 +343,21 @@ resultado eval_ast(ASTNode *node){
                         res.val = (double)((int)left.val / (int)right.val);
                     res.Type = rtype;
                     break;
+                case '%':
+                    //resto da divisao inteira: so para int/char, como em C
+                    if(rtype == TYPE_FLOAT){
+                        fprintf(stderr, "Erro: operador %% exige operandos inteiros!\n");
+                        exit(EXIT_FAILURE);
+                    }
+                    if((int)right.val == 0){
+                        fprintf(stderr, "Erro: Divisão por zero!\n");
+                        exit(EXIT_FAILURE);
+                    }
+                    res.val = (double)((int)left.val % (int)right.val);
+                    res.Type = TYPE_INT;
+                    break;
 
                 //operadores logicos
-                case '&':
-                    res.val = (double)(left.val && right.val);
-                    res.Type = TYPE_INT;
-                    break;
-                case '|':
-                    res.val = (double)(left.val || right.val);
-                    res.Type = TYPE_INT;
-                    break;
                 
                 //operadores de igualdade
                 case OP_EQ:
@@ -363,6 +401,10 @@ resultado eval_ast(ASTNode *node){
                 res.val = -operand.val;
                 res.Type = operand.Type;
                 break;
+            case '+':
+                res.val = operand.val;
+                res.Type = operand.Type;
+                break;
             case '!':
                 res.val = (double)(!operand.val);
                 res.Type = TYPE_INT;
@@ -378,45 +420,72 @@ resultado eval_ast(ASTNode *node){
     case AST_ASSIGN: {
         resultado expr = eval_ast(node->data.assign.expr);
         SymEntry *entry = buscar_simbolo(node->data.assign.name);
-        if(!entry){
-            fprintf(stderr, "Erro: variável '%s' não declarada!\n", node->data.assign.name);
+
+        if (!entry) {
+            fprintf(stderr, "Erro: variável '%s' não declarada!\n",
+                    node->data.assign.name);
             exit(EXIT_FAILURE);
         }
-        entry->value = to_sym_value(entry->type, expr.val); //converte para o tipo da variavel
-        printf("%s %s = ", tipo_para_string(entry->type), node->data.assign.name);
-        print_sym_value(entry->type, sym_val_as_double(entry));
-        printf("\n");
+
+        entry->value = to_sym_value(entry->type, expr.val);
+
+        if (rastro_execucao) {
+            printf("%s %s = ", tipo_para_string(entry->type),
+                   node->data.assign.name);
+            print_sym_value(entry->type, sym_val_as_double(entry));
+            printf("\n");
+        }
+
         break;
-    }  
-    
+    }
+
     //declaracao
     case AST_DECL: {
         double init_val = 0.0;
+
         if (node->data.decl.init) {
             resultado r = eval_ast(node->data.decl.init);
             init_val = r.val;
         }
+
         SymValue v = to_sym_value(node->data.decl.type, init_val);
-        inserir_simbolo(node->data.decl.name, node->data.decl.type, v);
-        if (node->data.decl.init) {
-            printf("Declarado: %s : %s = ", node->data.decl.name,
-                   tipo_para_string(node->data.decl.type));
-            print_sym_value(node->data.decl.type,
-                        sym_val_as_double(buscar_simbolo(node->data.decl.name)));
-            printf("\n");
-        } else {
-            printf("Declarado: %s : %s\n", node->data.decl.name,
-                   tipo_para_string(node->data.decl.type));
+        inserir_simbolo(node->data.decl.name,
+                        node->data.decl.type, v);
+
+        if (rastro_execucao) {
+            if (node->data.decl.init) {
+                printf("Declarado: %s : %s = ",
+                       node->data.decl.name,
+                       tipo_para_string(node->data.decl.type));
+
+                print_sym_value(
+                    node->data.decl.type,
+                    sym_val_as_double(
+                        buscar_simbolo(node->data.decl.name)
+                    )
+                );
+
+                printf("\n");
+            } else {
+                printf("Declarado: %s : %s\n",
+                       node->data.decl.name,
+                       tipo_para_string(node->data.decl.type));
+            }
         }
+
         break;
     }
 
     //expressoes como comando (expr;)
     case AST_EXPR_STMT: {
         resultado expr = eval_ast(node->data.expr_stmt.expr);
-        printf("Resultado da expressão: ");
-        print_sym_value(expr.Type, expr.val);
-        printf("\n");
+
+        if (rastro_execucao) {
+            printf("Resultado da expressão: ");
+            print_sym_value(expr.Type, expr.val);
+            printf("\n");
+        }
+
         break;
     }
 
@@ -456,6 +525,7 @@ resultado eval_ast(ASTNode *node){
 
     //for
     case AST_FOR: {
+        entrar_escopo(); //a variavel declarada no init so existe dentro do for
         if(node->data.for_stmt.init)
             eval_ast(node->data.for_stmt.init);
         //loop que testa condicao, executa corpo e passo
@@ -469,17 +539,27 @@ resultado eval_ast(ASTNode *node){
             if(node->data.for_stmt.step)
                 eval_ast(node->data.for_stmt.step);
         }
+        sair_escopo();
         break;
     }
 
-    //switch: executa a partir do case que casa ate um break (fall-through, como em C)
+    //switch: executa a partir do case que casa (ou do default, se nenhum casar)
+    //ate um break, seguindo para os case seguintes (fall-through, como em C)
     case AST_SWITCH: {
         resultado v = eval_ast(node->data.switch_stmt.expr);
-        ASTNode *c = node->data.switch_stmt.cases;
-        while(c && c->data.case_stmt.value != (int)v.val)
-            c = c->next;
+        ASTNode *c, *padrao = NULL;
+        for(c = node->data.switch_stmt.cases; c; c = c->next){
+            if(c->data.case_stmt.is_default){
+                if(!padrao) padrao = c;
+            }else if(c->data.case_stmt.value == (int)v.val){
+                break;
+            }
+        }
+        if(!c) c = padrao;
+        entrar_escopo(); //o corpo do switch e um bloco
         for(; c && controle_fluxo == CTRL_NORMAL; c = c->next)
             exec_list(c->data.case_stmt.stmts);
+        sair_escopo();
         if(controle_fluxo == CTRL_BREAK) //break sai do switch; continue/return seguem
             controle_fluxo = CTRL_NORMAL;
         break;
@@ -508,7 +588,9 @@ resultado eval_ast(ASTNode *node){
 
     //bloco de comandos
     case AST_BLOCK: {
+        entrar_escopo();
         exec_list(node->data.block.stmts);
+        sair_escopo(); //as variaveis do bloco deixam de existir
         break;
     }
 
@@ -532,6 +614,7 @@ static const char *op_to_str(int op) {
         case '-': return "-";
         case '*': return "*";
         case '/': return "/";
+        case '%': return "%";
         case '&': return "&&";
         case '|': return "||";
         case '!': return "!";
@@ -667,7 +750,10 @@ void print_ast(ASTNode *node, int level) {
         break;
 
     case AST_CASE:
-        printf("CASE (%d)\n", node->data.case_stmt.value);
+        if (node->data.case_stmt.is_default)
+            printf("DEFAULT\n");
+        else
+            printf("CASE (%d)\n", node->data.case_stmt.value);
         print_ast(node->data.case_stmt.stmts, level + 1);
         break;
 

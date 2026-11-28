@@ -1,9 +1,14 @@
 site_name: Interpretador de C
+site_description: Interpretador de um subconjunto de C escrito em C, com Flex e Bison (Compiladores 1, UnB, Equipe 08)
+site_url: https://m0yo.github.io/Compiladores_G08/
 repo_url: https://github.com/m0yo/Compiladores_G08
+repo_name: m0yo/Compiladores_G08
 
 theme:
   name: material
   language: pt-BR
+  icon:
+    repo: fontawesome/brands/github
   palette:
     - scheme: default
       primary: indigo
@@ -17,24 +22,45 @@ theme:
         name: Modo claro
   features:
     - navigation.tabs
+    - navigation.tabs.sticky
     - navigation.sections
+    - navigation.path
+    - navigation.footer
+    - navigation.tracking
     - navigation.top
+    - toc.follow
     - search.suggest
+    - search.highlight
     - content.code.copy
 
+markdown_extensions:
+  - toc:
+      permalink: true
+  - tables
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
+  - pymdownx.superfences
+
+# A ordem do menu segue o caminho do código-fonte no interpretador:
+# lexer -> parser -> AST e tabela de símbolos -> análise semântica -> avaliador.
 nav:
-  - Início: index.md
-  - Trabalho de Compiladores: trabalho_compiladores.md
-  - Contribuição:
-    - Documentação: docs.md
-    - Guia de Commits: contributing.md
-  - Como executar: como_executar.md
-  - Scanner:
-    - Analisador Léxico: lexer.md
-    - Expressões Regulares: expressoesRegularesFlex.md
-  - Parser:
-    - Analisador Sintático: parser.md
-    - Gramática: gramatica.md
+  - Início:
+    - Visão geral: index.md
+    - Como executar: como_executar.md
   - Interpretador:
-    - AST e Avaliador: ast.md
-    - Tabela de Símbolos: tabela_simbolos.md
+    - Análise léxica:
+      - Analisador Léxico: lexer.md
+      - Expressões Regulares: expressoesRegularesFlex.md
+    - Análise sintática:
+      - Gramática: gramatica.md
+      - Analisador Sintático: parser.md
+    - AST e execução:
+      - AST e Avaliador: ast.md
+      - Tabela de Símbolos: tabela_simbolos.md
+    - Análise Semântica: semantica.md
+  - Projeto:
+    - Trabalho de Compiladores: trabalho_compiladores.md
+    - Processo de desenvolvimento: processo.md
+  - Contribuição:
+    - Guia de Contribuição: contributing.md
+    - Documentação: docs.md

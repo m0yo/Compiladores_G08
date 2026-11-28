@@ -71,7 +71,7 @@ Tratam caracteres individuais, incluindo o suporte a sequências de escape padr�
 Palavras reservadas da linguagem, reconhecidas literalmente pelo scanner.
 
 * **Tipos:** `int` (`T_INT`), `float` (`T_FLOAT`), `char` (`T_CHAR`), `long` (`T_LONG`), `double` (`T_DOUBLE`)
-* **Controle de fluxo:** `if` (`F_IF`), `else` (`F_ELSE`), `while` (`F_WHILE`), `for` (`F_FOR`), `do` (`F_DO`), `switch` (`F_SWITCH`), `case` (`F_CASE`), `break` (`F_BREAK`), `continue` (`F_CONTINUE`), `return` (`F_RETURN`)
+* **Controle de fluxo:** `if` (`F_IF`), `else` (`F_ELSE`), `while` (`F_WHILE`), `for` (`F_FOR`), `do` (`F_DO`), `switch` (`F_SWITCH`), `case` (`F_CASE`), `default` (`F_DEFAULT`), `break` (`F_BREAK`), `continue` (`F_CONTINUE`), `return` (`F_RETURN`)
 
 ### Exemplos:
 | Lexema de Entrada | Token Esperado |
@@ -86,7 +86,7 @@ Palavras reservadas da linguagem, reconhecidas literalmente pelo scanner.
 
 Os operadores e delimitadores cobrem os símbolos aritméticos, relacionais, lógicos, de atribuição e pontuações estruturais da linguagem C.
 
-* **Aritméticos:** `+` (`O_PLUS`), `-` (`O_MINUS`), `*` (`O_MULTI`), `/` (`O_DIV`)
+* **Aritméticos:** `+` (`O_PLUS`), `-` (`O_MINUS`), `*` (`O_MULTI`), `/` (`O_DIV`), `%` (`O_MOD`)
 * **Atribuição:** `=` (`O_ASSIGN`)
 * **Relacionais:** `==` (`R_EQ`), `!=` (`R_NE`), `<` (`R_LT`), `>` (`R_GT`), `<=` (`R_LE`), `>=` (`R_GE`)
 * **Lógicos:** `&&` (`DM_AND`), `||` (`DM_OR`), `!` (`DM_NOT`)
@@ -118,7 +118,7 @@ Para evitar que o parser receba caracteres indesejados, os espaços e quebras de
 * **Implementação:** em vez de uma única expressão regular, o scanner usa um *estado exclusivo* do Flex (`%x COMENTARIO`):
   * `"/*"` entra no estado `COMENTARIO`;
   * dentro dele, `[^*\n]+` e `\*+` consomem o texto e os asteriscos, `\n` incrementa `linha_erro` e `"*/"` volta ao estado `INITIAL`;
-  * se o arquivo terminar com o comentário aberto (`<<EOF>>`), é impressa a mensagem `erro na linha N: comentario de bloco nao terminado` em `stderr`.
+  * se o arquivo terminar com o comentário aberto (`<<EOF>>`), é impressa a mensagem `Erro léxico na linha N: comentário de bloco aberto e não fechado` em `stderr`, com a linha em que o `/*` foi aberto.
 * **Por que não uma ER única:** a expressão `\/\*[^*]*\*+([^/*][^*]*\*+)*\/` reconhece o comentário inteiro de uma vez, mas não permite contar as linhas internas nem detectar um comentário não terminado. Por isso o estado exclusivo.
 * **Descrição:** Identifica blocos de comentários iniciados por `/*` e terminados por `*/`, permitindo múltiplas linhas. Comentários de bloco não podem ser aninhados.
 * **Exemplo:**
