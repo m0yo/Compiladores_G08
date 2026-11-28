@@ -1,4 +1,3 @@
-
 #!/bin/sh
 set -eu
 
@@ -17,7 +16,7 @@ status=0
 
 [ "$status" -eq 64 ] || falhar "código de saída do laço longo"
 
-diff -u tests/quiet/laco_longo.esperado "$tmp/out" || falhar "saída do laço longo"
+diff -u --strip-trailing-cr tests/quiet/laco_longo.esperado "$tmp/out" || falhar "saída do laço longo"
 
 [ ! -s "$tmp/err" ] || falhar "diagnósticos inesperados no laço longo"
 
@@ -66,7 +65,7 @@ for f in tests/erros/comentario_nao_terminado.c tests/semantica/nao_declarada_ex
 
     [ -s "$tmp/err_normal" ] || falhar "diagnóstico ausente: $f"
 
-    diff -u "$tmp/err_normal" "$tmp/err" || falhar "diagnóstico alterado: $f"
+    diff -u --strip-trailing-cr "$tmp/err_normal" "$tmp/err" || falhar "diagnóstico alterado: $f"
 
     echo "[OK ] modo silencioso: $f"
 done

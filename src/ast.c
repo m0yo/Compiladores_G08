@@ -438,7 +438,7 @@ resultado eval_ast(ASTNode *node){
 
         break;
     }
- 
+
     //declaracao
     case AST_DECL: {
         double init_val = 0.0;
@@ -488,7 +488,6 @@ resultado eval_ast(ASTNode *node){
 
         break;
     }
-
 
     //controle de fluxo
     //if/ if-else
