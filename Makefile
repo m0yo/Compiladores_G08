@@ -57,11 +57,11 @@ test: $(EXEC) $(TEST_AST)
 		if echo "$$f" | grep -q "\.esperado$$"; then continue; fi; \
 		esp="$${f%.*}.esperado"; \
 		if [ -f "$$esp" ]; then \
-			if ./$(EXEC) < "$$f" 2>&1 | diff -u "$$esp" - > /dev/null; then \
+			if ./$(EXEC) < "$$f" 2>&1 | diff -u --strip-trailing-cr "$$esp" - > /dev/null; then \
 				echo "[OK ] $$f"; \
 			else \
 				echo "[FALHOU] $$f (saída diferente do esperado)"; \
-				./$(EXEC) < "$$f" 2>&1 | diff -u "$$esp" -; \
+				./$(EXEC) < "$$f" 2>&1 | diff -u --strip-trailing-cr "$$esp" -; \
 				falhas=1; \
 			fi; \
 		else \
@@ -83,8 +83,8 @@ test: $(EXEC) $(TEST_AST)
 			falhas=1; \
 		else \
 			if [ -f "$$esp" ]; then \
-				if ./$(EXEC) < "$$f" 2>&1 | diff -u "$$esp" - > /dev/null; then echo "[OK ] $$f (rejeitado corretamente)"; \
-				else echo "[FALHOU] $$f (erro ocorreu, mas stdout/stderr difere do .esperado)"; ./$(EXEC) < "$$f" 2>&1 | diff -u "$$esp" -; falhas=1; fi; \
+				if ./$(EXEC) < "$$f" 2>&1 | diff -u --strip-trailing-cr "$$esp" - > /dev/null; then echo "[OK ] $$f (rejeitado corretamente)"; \
+				else echo "[FALHOU] $$f (erro ocorreu, mas stdout/stderr difere do .esperado)"; ./$(EXEC) < "$$f" 2>&1 | diff -u --strip-trailing-cr "$$esp" -; falhas=1; fi; \
 			else \
 				echo "[OK ] $$f (rejeitado corretamente)"; \
 			fi; \
@@ -107,8 +107,8 @@ test_lexer: $(LEXER_EXEC)
 	@falhas=0; for f in tests/lexer/*.txt; do \
 		[ -e "$$f" ] || continue; \
 		esp="$${f%.txt}.esperado"; \
-		if ./$(LEXER_EXEC) < "$$f" 2>&1 | sed 's/^Token: [0-9]* | //' | diff -u "$$esp" - > /dev/null; then echo "[OK ] $$f"; \
-		else echo "[FALHOU] $$f"; ./$(LEXER_EXEC) < "$$f" 2>&1 | sed 's/^Token: [0-9]* | //' | diff -u "$$esp" -; falhas=1; fi; \
+		if ./$(LEXER_EXEC) < "$$f" 2>&1 | sed 's/^Token: [0-9]* | //' | diff -u --strip-trailing-cr "$$esp" - > /dev/null; then echo "[OK ] $$f"; \
+		else echo "[FALHOU] $$f"; ./$(LEXER_EXEC) < "$$f" 2>&1 | sed 's/^Token: [0-9]* | //' | diff -u --strip-trailing-cr "$$esp" -; falhas=1; fi; \
 	done; exit $$falhas
 
 # Vazamento de memória: compila o parser com AddressSanitizer/LeakSanitizer e roda todos os
