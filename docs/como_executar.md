@@ -15,7 +15,8 @@ Todos os arquivos gerados ficam em `build/`; os executáveis ficam na raiz do pr
 | Comando | O que faz |
 |---|---|
 | `make` | Compila lexer e parser juntos e gera o executável `parser_exe` |
-| `make test` | Roda os testes unitários da AST e os programas de `tests/programas/` e `tests/semantica/` |
+| `make test` | Roda todos os testes: unitários da AST, scanner, programas comparados com a saída esperada e programas que devem ser rejeitados |
+| `make test_lexer` | Roda só os testes do scanner (`tests/lexer/`) |
 | `make lexer_exe` | Compila só o lexer, em modo isolado, e gera o executável `lexer_exe` |
 | `make clean` | Remove `parser_exe`, `lexer_exe` e a pasta `build/` |
 
@@ -55,13 +56,19 @@ Para cada token é impresso o código, o lexema e a linha. Veja o formato e os d
 make test
 ```
 
-O alvo roda três grupos de testes:
+O alvo roda quatro grupos de testes, que cobrem cada fase do interpretador:
 
 1. **Testes unitários** (`src/test_main.c`, compilado em `build/test_ast`): tabela de símbolos (inclusive escopos), expressões, declarações, atribuições, `if/else`, `while`, `for`, `switch` com `default` e `char`, montando a AST à mão.
-2. **Programas comparados com a saída esperada** (`tests/programas/*` e `tests/semantica/*`, veja [Análise Semântica](semantica.md)): cada programa é executado pelo `parser_exe` e a saída (`stdout` e `stderr`) é comparada com o arquivo `.esperado` de mesmo nome. Os de `tests/semantica/` incluem programas com erros e avisos semânticos, e a comparação confere as mensagens.
-3. **Testes de erro** (`tests/erros/*`): programas que devem ser rejeitados (erro léxico ou sintático, como strings, funções, structs ou um comentário de bloco não fechado). O teste falha se o `parser_exe` terminar com código de saída `0`; se houver `.esperado`, a saída também é comparada.
+2. **Scanner** (`tests/lexer/*.txt`, alvo `make test_lexer`): cada arquivo passa pelo `lexer_exe` e a saída (lexema e linha de cada token, mais as mensagens de erro léxico) é comparada com o `.esperado`, na ordem em que aparecem no programa de entrada (o `lexer_exe` imprime o `stdout` linha a linha para garantir isso). O código numérico do token é ignorado, para que um token novo no parser não quebre os casos. Há entradas válidas (tokens, literais, comentários) e inválidas (caractere desconhecido, comentário de bloco não fechado).
+3. **Programas comparados com a saída esperada** (`tests/programas/*` e `tests/semantica/*`, veja [Análise Semântica](semantica.md)): cada programa é executado pelo `parser_exe` e a saída (`stdout` e `stderr`) é comparada com o arquivo `.esperado` de mesmo nome. Os de `tests/semantica/` incluem programas com erros e avisos semânticos, e a comparação confere as mensagens.
+4. **Testes de erro** (`tests/erros/*`): programas que devem ser rejeitados (erro léxico ou sintático, como strings, funções, structs, um comentário de bloco não fechado, `;` ou parêntese faltando, `else` sem `if`, `case` fora de `switch`). O teste falha se o `parser_exe` terminar com código de saída `0`; se houver `.esperado`, a saída também é comparada. Os `.esperado` dos erros sintáticos fixam a linha e a mensagem que o Bison reporta (por exemplo, a linha do fim do arquivo em `sintaxe_chave_aberta`), então devem ser revistos se a gramática mudar.
 
-Para adicionar um caso, crie `nome.c` na pasta certa, confira a saída e salve-a com `./parser_exe tests/programas/nome.c > tests/programas/nome.esperado 2>&1`.
+Para adicionar um caso, crie o arquivo na pasta certa, **confira a saída** e só então salve-a:
+
+```bash
+./parser_exe tests/programas/nome.c > tests/programas/nome.esperado 2>&1     # programa (ou tests/erros/, tests/semantica/)
+./lexer_exe < tests/lexer/nome.txt 2>&1 | sed 's/^Token: [0-9]* | //' > tests/lexer/nome.esperado   # scanner
+```
 
 Para rodar só os testes unitários e ver a saída completa: `make build/test_ast && ./build/test_ast`.
 

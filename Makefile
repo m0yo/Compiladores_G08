@@ -48,9 +48,10 @@ $(TEST_AST): src/test_main.c $(C_SRCS) src/ast.h src/tabela_simbolos.h | $(BUILD
 test: $(EXEC) $(TEST_AST)
 	@echo "=== Rodando testes unitários da AST ==="
 	@./$(TEST_AST) > /dev/null && echo "[OK ] testes unitários da AST" || { echo "[FALHOU] testes unitários da AST"; exit 1; }
-	
-	@printf "\n=== Rodando programas (saída comparada com .esperado) ===\n"
-	@falhas=0; for f in tests/programas/* tests/semantica/*; do \
+	@falhas=0; \
+	$(MAKE) --no-print-directory test_lexer || falhas=1; \
+	printf "\n=== Rodando programas (saída comparada com .esperado) ===\n"; \
+	for f in tests/programas/* tests/semantica/*; do \
 		[ -e "$$f" ] || continue; \
 		[ -d "$$f" ] && continue; \
 		if echo "$$f" | grep -q "\.esperado$$"; then continue; fi; \
@@ -96,4 +97,18 @@ test: $(EXEC) $(TEST_AST)
 clean:
 	rm -rf $(EXEC) $(LEXER_EXEC) $(BUILD_DIR)
 
-.PHONY: all clean test
+.PHONY: all clean test test_lexer
+
+# Testes do scanner: cada tests/lexer/*.txt passa pelo lexer isolado e a saída (stdout e stderr
+# juntos) é comparada com o .esperado. O código numérico do token é removido da comparação, para
+# que um token novo no parser não mude os códigos dos demais e quebre os casos. O lexer isolado
+# imprime stdout linha a linha (setvbuf no main de lexer.l); sem isso, as mensagens de erro (stderr)
+# sairiam antes dos tokens quando a saída vai para um pipe.
+test_lexer: $(LEXER_EXEC)
+	@echo "=== Rodando testes do scanner ==="
+	@falhas=0; for f in tests/lexer/*.txt; do \
+		[ -e "$$f" ] || continue; \
+		esp="$${f%.txt}.esperado"; \
+		if ./$(LEXER_EXEC) < "$$f" 2>&1 | sed 's/^Token: [0-9]* | //' | diff -u "$$esp" - > /dev/null; then echo "[OK ] $$f"; \
+		else echo "[FALHOU] $$f"; ./$(LEXER_EXEC) < "$$f" 2>&1 | sed 's/^Token: [0-9]* | //' | diff -u "$$esp" -; falhas=1; fi; \
+	done; exit $$falhas

@@ -181,6 +181,9 @@ static char decod_char(const char *text){
 #ifdef LEXER_STANDALONE
 int main(void) {
     int token;
+    /* stdout linha a linha: com stdout e stderr juntos (2>&1), as mensagens de erro
+       saem na ordem em que aparecem no programa de entrada, e nao so no fim */
+    setvbuf(stdout, NULL, _IOLBF, 0);
     while ((token = yylex()) != 0) {
         printf("Token: %d | Lexema: '%s' | Linha: %d\n", token, yytext, linha_erro);
     }

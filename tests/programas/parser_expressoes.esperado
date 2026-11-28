@@ -1,0 +1,7 @@
+Declarado: a : int = 14
+Declarado: b : int = 20
+Declarado: c : int = 6
+Declarado: d : int = 1
+Declarado: f : float = 2.500000
+Declarado: ch : char = 'x'
+int d = 1
