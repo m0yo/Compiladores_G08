@@ -95,7 +95,7 @@ test: $(EXEC) $(TEST_AST)
 clean:
 	rm -rf $(EXEC) $(LEXER_EXEC) $(BUILD_DIR)
 
-.PHONY: all clean test test_lexer
+.PHONY: all clean test test_lexer test_vazamento
 
 # Testes do scanner: cada tests/lexer/*.txt passa pelo lexer isolado e a saída (stdout e stderr
 # juntos) é comparada com o .esperado. O código numérico do token é removido da comparação, para
@@ -109,4 +109,22 @@ test_lexer: $(LEXER_EXEC)
 		esp="$${f%.txt}.esperado"; \
 		if ./$(LEXER_EXEC) < "$$f" 2>&1 | sed 's/^Token: [0-9]* | //' | diff -u "$$esp" - > /dev/null; then echo "[OK ] $$f"; \
 		else echo "[FALHOU] $$f"; ./$(LEXER_EXEC) < "$$f" 2>&1 | sed 's/^Token: [0-9]* | //' | diff -u "$$esp" -; falhas=1; fi; \
+	done; exit $$falhas
+
+# Vazamento de memória: compila o parser com AddressSanitizer/LeakSanitizer e roda todos os
+# programas de teste, inclusive os rejeitados. Falha se o sanitizador acusar vazamento ou acesso
+# inválido. Fica fora do `make test` porque depende do suporte a -fsanitize do compilador.
+ASAN_EXEC = $(BUILD_DIR)/parser_asan
+
+$(ASAN_EXEC): $(BISON_C) $(FLEX_C) $(C_SRCS) src/ast.h src/tabela_simbolos.h src/semantica.h
+	$(CC) $(CFLAGS) -g -fsanitize=address -fno-omit-frame-pointer -o $@ $(BISON_C) $(FLEX_C) $(C_SRCS) -lm
+
+test_vazamento: $(ASAN_EXEC)
+	@echo "=== Rodando testes de vazamento de memória (AddressSanitizer) ==="
+	@falhas=0; for f in tests/programas/* tests/semantica/* tests/erros/*; do \
+		[ -f "$$f" ] || continue; \
+		if echo "$$f" | grep -q "\.esperado$$"; then continue; fi; \
+		if ASAN_OPTIONS=detect_leaks=1 ./$(ASAN_EXEC) < "$$f" 2>&1 >/dev/null | grep -q "Sanitizer"; then \
+			echo "[FALHOU] $$f"; ASAN_OPTIONS=detect_leaks=1 ./$(ASAN_EXEC) < "$$f" 2>&1 >/dev/null | grep -E "SUMMARY|ERROR"; falhas=1; \
+		else echo "[OK ] $$f"; fi; \
 	done; exit $$falhas
