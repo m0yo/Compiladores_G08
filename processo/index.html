@@ -1,0 +1,1969 @@
+
+<!doctype html>
+<html lang="pt" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Interpretador de um subconjunto de C escrito em C, com Flex e Bison (Compiladores 1, UnB, Equipe 08)">
+      
+      
+      
+        <link rel="canonical" href="https://m0yo.github.io/Compiladores_G08/processo/">
+      
+      
+        <link rel="prev" href="../trabalho_compiladores/">
+      
+      
+        <link rel="next" href="../contributing/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.2">
+    
+    
+      
+        <title>Processo de desenvolvimento - Interpretador de C</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.57a0d79d.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.fb2fffe2.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#processo-de-desenvolvimento" class="md-skip">
+          Pular para conteúdo
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Cabeçalho">
+    <a href=".." title="Interpretador de C" class="md-header__button md-logo" aria-label="Interpretador de C" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Interpretador de C
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Processo de desenvolvimento
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Modo escuro"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Modo escuro" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Modo claro"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Modo claro" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Buscar" placeholder="Buscar" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Pesquisar">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Limpar" aria-label="Limpar" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Inicializando busca
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/m0yo/Compiladores_G08" title="Ir para repositório" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    m0yo/Compiladores_G08
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Abas" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href=".." class="md-tabs__link">
+          
+  
+  
+  Início
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../lexer/" class="md-tabs__link">
+          
+  
+  
+  Interpretador
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../trabalho_compiladores/" class="md-tabs__link">
+          
+  
+  
+  Projeto
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../contributing/" class="md-tabs__link">
+          
+  
+  
+  Contribuição
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navegação" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Interpretador de C" class="md-nav__button md-logo" aria-label="Interpretador de C" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Interpretador de C
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/m0yo/Compiladores_G08" title="Ir para repositório" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    m0yo/Compiladores_G08
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_1" id="__nav_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Início
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Início
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Visão geral
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../como_executar/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Como executar
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Interpretador
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Interpretador
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_1" id="__nav_2_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Análise léxica
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Análise léxica
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../lexer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Analisador Léxico
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../expressoesRegularesFlex/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Expressões Regulares
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_2" id="__nav_2_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Análise sintática
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Análise sintática
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../gramatica/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Gramática
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../parser/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Analisador Sintático
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_3" id="__nav_2_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AST e execução
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    AST e execução
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ast/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AST e Avaliador
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tabela_simbolos/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tabela de Símbolos
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../semantica/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Análise Semântica
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Projeto
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Projeto
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../trabalho_compiladores/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Trabalho de Compiladores
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Processo de desenvolvimento
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Processo de desenvolvimento
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Índice">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Índice
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#como-a-equipe-trabalhou" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Como a equipe trabalhou
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sprints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sprints
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Sprints">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sprints-1-a-13-ate-a-p2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sprints 1 a 13: até a P2
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sprints-14-a-16-da-p2-a-entrega" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sprints 14 a 16: da P2 à entrega
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ajustes-no-planejamento" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ajustes no planejamento
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#decisoes-tecnicas" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Decisões técnicas
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Decisões técnicas">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#saida-de-dados" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Saída de dados
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#problemas-encontrados-e-solucoes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Problemas encontrados e soluções
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#o-que-ficou-de-fora" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        O que ficou de fora
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contribuição
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Contribuição
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guia de Contribuição
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Documentação
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Índice">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Índice
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#como-a-equipe-trabalhou" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Como a equipe trabalhou
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sprints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sprints
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Sprints">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sprints-1-a-13-ate-a-p2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sprints 1 a 13: até a P2
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sprints-14-a-16-da-p2-a-entrega" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sprints 14 a 16: da P2 à entrega
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ajustes-no-planejamento" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ajustes no planejamento
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#decisoes-tecnicas" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Decisões técnicas
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Decisões técnicas">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#saida-de-dados" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Saída de dados
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#problemas-encontrados-e-solucoes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Problemas encontrados e soluções
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#o-que-ficou-de-fora" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        O que ficou de fora
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+                
+
+
+
+
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="processo-de-desenvolvimento">Processo de desenvolvimento<a class="headerlink" href="#processo-de-desenvolvimento" title="Permanent link">&para;</a></h1>
+<p>Esta página registra como a Equipe 08 organizou o trabalho: as sprints, as decisões técnicas e o motivo de cada uma, e os problemas encontrados com a solução adotada. Ela atende o item "Repositório no GitHub" do documento <a href="../trabalho_compiladores/">Trabalho de Compiladores</a>, que pede <strong>decisões técnicas</strong>, <strong>planejamento das sprints</strong> e <strong>problemas encontrados e soluções adotadas</strong>.</p>
+<hr />
+<h2 id="como-a-equipe-trabalhou">Como a equipe trabalhou<a class="headerlink" href="#como-a-equipe-trabalhou" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Método:</strong> Scrum com sprints semanais, como recomenda a proposta da disciplina. A revisão de cada sprint acontecia na aula prática de quarta-feira, onde se mostrava o que tinha sido concluído e se combinava o que entraria na sprint seguinte.</li>
+<li><strong>Tarefas:</strong> cada trabalho relevante virou uma issue no GitHub, aberta com os modelos de <code>.github/ISSUE_TEMPLATE/</code> (<code>feature</code>, <code>bug</code>, <code>documentation</code>, <code>task</code>).</li>
+<li><strong>Branches:</strong> <code>main</code> (versão estável), <code>develop</code> (integração) e branches de trabalho <code>feature/*</code>, <code>fix/*</code>, <code>docs/*</code> e <code>test/*</code> criadas a partir da <code>develop</code>. Nada entra na <code>main</code> nem na <code>develop</code> sem Pull Request revisado. As regras completas estão no <a href="../contributing/">Guia de Commits</a>.</li>
+<li><strong>Commits:</strong> padrão <code>&lt;emoji&gt; &lt;tipo&gt;: &lt;descrição&gt;</code> em português.</li>
+<li><strong>Documentação:</strong> escrita em <code>docs/</code> junto com o código e publicada pelo GitHub Actions (MkDocs) na branch <code>gh-docs</code> a cada push na <code>main</code>.</li>
+<li><strong>Pontos de controle:</strong> P1 em 28/09/2026 e P2 em 09/11/2026. Entrevista final da equipe em 30/11/2026.</li>
+</ul>
+<hr />
+<h2 id="sprints">Sprints<a class="headerlink" href="#sprints" title="Permanent link">&para;</a></h2>
+<p>As sprints vão de terça a segunda, de modo que cada uma termina antes da revisão de quarta. A numeração segue a semana do semestre, a mesma usada na apresentação da P2. As sprints 1 a 13 foram reconstruídas a partir do histórico do git (commits e Pull Requests mesclados), porque a equipe não manteve um quadro separado antes da P2. Para as sprints 14 a 16, a tabela mostra o planejamento apresentado na P2 ao lado do que de fato entrou.</p>
+<h3 id="sprints-1-a-13-ate-a-p2">Sprints 1 a 13: até a P2<a class="headerlink" href="#sprints-1-a-13-ate-a-p2" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Sprint</th>
+<th>Período</th>
+<th>Foco</th>
+<th>O que entrou</th>
+<th>Quem</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1 e 2</td>
+<td>11/08 a 24/08</td>
+<td>Ambiente</td>
+<td>Repositório criado; estrutura inicial com Flex e Bison; <code>.gitignore</code></td>
+<td>Maria Clara</td>
+</tr>
+<tr>
+<td>3</td>
+<td>25/08 a 31/08</td>
+<td>Organização e primeiros tokens</td>
+<td>Pasta <code>src/</code> e <code>docs/</code>; tokens aritméticos no <code>lexer.l</code> (PRs #1 e #2)</td>
+<td>Pedro</td>
+</tr>
+<tr>
+<td>4</td>
+<td>01/09 a 07/09</td>
+<td>Lexer e documentação</td>
+<td>Lexer independente do Bison com mais operadores e literais; MkDocs configurado e publicado pelo GitHub Actions; regras de commit e documentação (PRs #4 e #5)</td>
+<td>Pedro, Maria Clara</td>
+</tr>
+<tr>
+<td>5</td>
+<td>08/09 a 14/09</td>
+<td>Build</td>
+<td><code>Makefile</code> rodando o lexer avulso; README; página com a proposta da disciplina; correção do diretório dos modelos de issue (PRs #18, #19 e #20)</td>
+<td>Pedro, Jefferson, Maria Clara</td>
+</tr>
+<tr>
+<td>6</td>
+<td>15/09 a 21/09</td>
+<td>Especificação da linguagem</td>
+<td>Especificação inicial do subconjunto de C e gramática em BNF (PR #23); guia de expressões regulares do Flex</td>
+<td>Pedro, Clarice</td>
+</tr>
+<tr>
+<td>7</td>
+<td>22/09 a 28/09</td>
+<td>Preparação da P1</td>
+<td>Gramática formal e guia de expressões regulares no site (PRs #28 a #31); parser inicial (PR #32); integração <code>develop</code> → <code>main</code> (PR #33). <strong>P1 em 28/09</strong></td>
+<td>Clarice, Júlia, Maria Clara</td>
+</tr>
+<tr>
+<td>8</td>
+<td>29/09 a 05/10</td>
+<td>Lexer completo</td>
+<td>Comentários de linha e de bloco; valores semânticos dos literais em <code>yylval</code>; correções no <code>parser.y</code> (<code>%start</code>, ordem de tokens) e no <code>.gitignore</code> (PR #41)</td>
+<td>Maria Clara, Clarice</td>
+</tr>
+<tr>
+<td>9</td>
+<td>06/10 a 12/10</td>
+<td>Teste do scanner</td>
+<td>Correção das regras do lexer e teste do scanner (PR #43)</td>
+<td>Maria Clara</td>
+</tr>
+<tr>
+<td>10</td>
+<td>13/10 a 19/10</td>
+<td>Tokens do parser</td>
+<td>Correção da declaração e da ordem dos tokens; remoção do <code>enum</code> de teste do lexer</td>
+<td>Pedro</td>
+</tr>
+<tr>
+<td>11</td>
+<td>20/10 a 26/10</td>
+<td>Parser</td>
+<td>Tokens <code>{</code>, <code>}</code>, <code>;</code> e <code>%union</code> para os literais; raiz da gramática definida (PR #46)</td>
+<td>Pedro</td>
+</tr>
+<tr>
+<td>12</td>
+<td>27/10 a 02/11</td>
+<td>Tabela de símbolos, AST e avaliador</td>
+<td>Tabela de símbolos ligada ao parser (PR #47); lexer e parser integrados com tokens e <code>%union</code> compartilhados (PR #48); migração da tabela para hash, tipos de nó, construtores e avaliador recursivo <code>eval_ast</code>, desenvolvidos nesta sprint e mesclados no PR #52</td>
+<td>Clarice, Pedro, Jefferson</td>
+</tr>
+<tr>
+<td>13</td>
+<td>03/11 a 09/11</td>
+<td>Preparação da P2</td>
+<td>Arquivos gerados fora do git (<code>build/</code>); AST, tabela hash e avaliador mesclados; documentação atualizada; <code>develop</code> → <code>main</code> (PRs #51, #52, #55 e #56). <strong>P2 em 09/11</strong></td>
+<td>Maria Clara, Pedro</td>
+</tr>
+</tbody>
+</table>
+<h3 id="sprints-14-a-16-da-p2-a-entrega">Sprints 14 a 16: da P2 à entrega<a class="headerlink" href="#sprints-14-a-16-da-p2-a-entrega" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Sprint</th>
+<th>Período</th>
+<th>Planejado na P2</th>
+<th>O que entrou</th>
+<th>Quem</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>14</td>
+<td>10/11 a 18/11</td>
+<td>Parser completo (declarações, atribuições, <code>if</code>, <code>while</code>, <code>for</code>, blocos); ações semânticas que criam a AST</td>
+<td>Parser com declarações, expressões e todos os comandos de controle, documentado em <code>docs/parser.md</code> (PR #57); parser passa a construir a AST</td>
+<td>Jefferson, Pedro</td>
+</tr>
+<tr>
+<td>15</td>
+<td>19/11 a 23/11</td>
+<td>Execução de ponta a ponta; análise semântica básica; <code>make test</code></td>
+<td>Programas completos executados de ponta a ponta (PR #58); strings, funções e structs retirados do lexer e do parser, com testes de rejeição (PR #59). A análise semântica e o <code>make test</code> ficaram para a sprint seguinte</td>
+<td>Pedro, Jefferson</td>
+</tr>
+<tr>
+<td>16</td>
+<td>24/11 a 25/11</td>
+<td>Documentação, revisão cruzada, congelamento em 25/11</td>
+<td><code>main</code> e <code>develop</code> reunidas (PRs #60 e #61); módulo de análise semântica com a linha de cada nó na AST; primeiros ajustes do <code>make test</code> e triagem dos testes de erro</td>
+<td>Jefferson, Maria Clara, Clarice</td>
+</tr>
+<tr>
+<td>Fechamento</td>
+<td>26/11 a 29/11</td>
+<td>Ensaio da entrevista</td>
+<td>Escopos aninhados, operador <code>%</code>, <code>default</code> no <code>switch</code>, curto-circuito em <code>&amp;&amp;</code>/<code>\|\|</code> e erro léxico para comentário não terminado (PR #81); <code>make test</code> com programas comparados com <code>.esperado</code> e programas que devem ser rejeitados, além de mover arquivos de erro para <code>tests/erros/</code> e documentar mudanças em <code>docs/como_executar.md</code> (PR #79); <code>case</code> com constante negativa e <code>+</code> unário (PR #82); testes do scanner (<code>tests/lexer/</code>, alvo <code>make test_lexer</code>) e de erros sintáticos (PR #83); README e tabela de estado atualizados (PR #84); memória liberada em erros sintáticos e <code>make test</code> imune a CRLF no Windows (PR #86); modo silencioso <code>-q</code> (PR #88); documentação atualizada. Ensaio da entrevista</td>
+<td>Pedro, Clarice, Jefferson, Júlia, Maria Clara</td>
+</tr>
+</tbody>
+</table>
+<h3 id="ajustes-no-planejamento">Ajustes no planejamento<a class="headerlink" href="#ajustes-no-planejamento" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Depois da P1</strong>, a prioridade passou a ser ligar o parser à AST: a AST, a tabela de símbolos e o avaliador ficaram prontos antes do parser, e sem as ações semânticas nenhum programa executava.</li>
+<li><strong>Na P2</strong>, o escopo foi reduzido: strings, funções e structs saíram da entrega. O foco ficou em <code>int</code>, <code>float</code> e <code>char</code> com todos os comandos de controle.</li>
+<li><strong>Na sprint 15</strong>, a análise semântica e o <code>make test</code> atrasaram, porque a execução de ponta a ponta (PR #58) e a redução de escopo (PR #59) foram mescladas em branches diferentes e precisaram ser reunidas antes (veja "Problemas e soluções").</li>
+<li><strong>O congelamento planejado para 25/11 passou para 27/11.</strong> Uma revisão do código em 24/11 encontrou falhas de semântica da linguagem (sem escopos de bloco, sem curto-circuito, sem <code>%</code> e sem <code>default</code>) que não podiam ficar para depois da entrega. Elas viraram as issues #62 a #68 e foram corrigidas em 26/11 e 27/11.</li>
+</ul>
+<hr />
+<h2 id="decisoes-tecnicas">Decisões técnicas<a class="headerlink" href="#decisoes-tecnicas" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Decisão</th>
+<th>Motivo</th>
+<th>Onde está</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Implementar em C</td>
+<td>É a linguagem das ações do Flex e do Bison e a dos exemplos da disciplina; também é a linguagem interpretada, o que facilita comparar resultados com o <code>gcc</code></td>
+<td><code>src/</code></td>
+</tr>
+<tr>
+<td>Flex para o lexer e Bison para o parser</td>
+<td>Ferramentas adotadas na disciplina; geram o scanner e um parser LALR(1) a partir de especificações declarativas</td>
+<td><code>src/lexer.l</code>, <code>src/parser.y</code></td>
+</tr>
+<tr>
+<td>Interpretador, não compilador</td>
+<td>O guia do professor oferece as duas opções. Percorrer a AST e executar cada nó substitui a geração de código intermediário e cabe no prazo do semestre</td>
+<td><code>eval_ast</code> em <code>src/ast.c</code></td>
+</tr>
+<tr>
+<td>Subconjunto de C: <code>int</code>, <code>float</code> e <code>char</code>; sem strings, funções e structs</td>
+<td>Reduz o trabalho a um núcleo completo e testável (declarações, expressões e todos os comandos de controle) em vez de muitas partes incompletas</td>
+<td>PR #59; <a href="../gramatica/">Gramática</a></td>
+</tr>
+<tr>
+<td><code>long</code> e <code>double</code> aceitos, mas tratados como <code>int</code> e <code>float</code></td>
+<td>O lexer reconhece as palavras-chave, mas a união de valores da AST tem só <code>int</code>, <code>float</code> e <code>char</code>; tipos próprios ficaram como melhoria opcional</td>
+<td><code>src/lexer.l</code>, <code>src/ast.h</code></td>
+</tr>
+<tr>
+<td>AST com um <code>union</code> por tipo de nó (19 tipos)</td>
+<td>Cada nó guarda só os campos que usa; os construtores (<code>new_*_node</code>) isolam a alocação e o parser só os chama</td>
+<td><code>src/ast.h</code>, <code>src/ast.c</code></td>
+</tr>
+<tr>
+<td><code>else</code> pendente resolvido com <code>%precedence</code></td>
+<td><code>%precedence SEM_ELSE</code> e <code>%precedence F_ELSE</code> ligam o <code>else</code> ao <code>if</code> mais próximo, como em C, sem conflito <em>shift/reduce</em></td>
+<td><code>src/parser.y</code></td>
+</tr>
+<tr>
+<td>Tabela de símbolos em tabela hash (djb2, 211 posições, encadeamento)</td>
+<td>Busca em tempo médio constante; a primeira versão, com arrays paralelos, fazia busca linear</td>
+<td><code>src/tabela_simbolos.c</code></td>
+</tr>
+<tr>
+<td>Escopos aninhados pelo nível guardado em cada entrada</td>
+<td>A inserção é no início de cada lista do hash, então a busca já encontra a declaração mais interna; sair de um escopo remove as entradas daquele nível. Abre-se um escopo por bloco <code>{ }</code>, por <code>for</code> e por corpo de <code>switch</code>, como em C</td>
+<td><code>src/tabela_simbolos.c</code>, <code>src/ast.c</code></td>
+</tr>
+<tr>
+<td>Análise semântica em módulo separado, numa passada antes da execução</td>
+<td>Erros como variável não declarada, redeclaração e <code>break</code> fora de laço aparecem todos de uma vez, com a linha, e nada é executado. Avisos (conversão de <code>float</code> para <code>int</code>, divisão por zero literal, uso sem valor) não impedem a execução</td>
+<td><code>src/semantica.c</code>; <a href="../semantica/">Análise Semântica</a></td>
+</tr>
+<tr>
+<td>Linha do código-fonte gravada em cada nó da AST</td>
+<td>Permite mensagens com a linha na análise semântica. Em <code>case</code> e <code>default</code>, a linha vem de uma ação no meio da regra, porque ao reduzir a regra o lexer já leu o token seguinte</td>
+<td><code>src/parser.y</code>, <code>src/ast.c</code></td>
+</tr>
+<tr>
+<td>Erros em <code>stderr</code> e código de saída 1</td>
+<td>Separa o resultado do programa dos diagnósticos e permite que o <code>make test</code> confira se um programa foi rejeitado</td>
+<td><code>src/parser.y</code></td>
+</tr>
+<tr>
+<td><code>make test</code> com saídas esperadas</td>
+<td>Cada programa válido de teste tem um <code>.esperado</code> com <code>stdout</code> e <code>stderr</code>, ignorando o código de saída do <code>return</code> do programa; programas inválidos ficam isolados em <code>tests/erros/</code> e precisam terminar com código diferente de zero. Assim uma regressão quebra o <code>make test</code></td>
+<td><code>Makefile</code>; <a href="../como_executar/">Como executar</a></td>
+</tr>
+<tr>
+<td>Rótulos de <code>case</code> com sinal e <code>+</code> unário resolvidos na gramática</td>
+<td>Reaproveita os tokens <code>O_MINUS</code> e <code>O_PLUS</code> já gerados pelo scanner, evitando complexidade ou ambiguidades léxicas com números negativos</td>
+<td><code>src/parser.y</code></td>
+</tr>
+<tr>
+<td>Testes do scanner ignoram o código numérico dos tokens</td>
+<td>O código muda quando um token é adicionado ao parser (<code>%</code> e <code>default</code> mudaram os demais); comparar só o lexema e a linha evita quebrar os <code>.esperado</code> a cada token novo</td>
+<td><code>Makefile</code> (<code>make test_lexer</code>), <code>tests/lexer/</code></td>
+</tr>
+<tr>
+<td>Arquivos gerados fora do git</td>
+<td><code>lex.yy.c</code>, <code>parser.tab.*</code> e binários vão para <code>build/</code>, que é ignorado; evita conflitos em arquivos que ninguém edita</td>
+<td><code>.gitignore</code>, <code>Makefile</code></td>
+</tr>
+<tr>
+<td>Documentação em MkDocs publicada automaticamente</td>
+<td>O site é sempre gerado a partir da <code>main</code>, sem edição manual da <code>gh-docs</code></td>
+<td><code>.github/workflows/deploy.yml</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="saida-de-dados">Saída de dados<a class="headerlink" href="#saida-de-dados" title="Permanent link">&para;</a></h3>
+<p>Sem strings não há <code>printf</code>. A issue #71 considerou duas opções: (a) manter o rastro do avaliador e documentá-lo como a saída do interpretador, ou (b) criar um comando embutido que imprime números, sem strings. A equipe escolheu a <strong>opção (a)</strong>.</p>
+<p>A saída do interpretador é o rastro impresso a cada declaração, atribuição e expressão (<code>Declarado: x : int = 3</code>, <code>int x = 4</code>, <code>Resultado da expressão: 8</code>), seguido de <code>Programa retornou: N</code> quando o programa executa um <code>return</code>. Criar um comando de impressão exigiria mudar o lexer, a gramática e a AST, e o rastro já atende a demonstração e os testes, que comparam essa saída com os arquivos <code>.esperado</code>.</p>
+<p>Para programas com laços longos, em que o rastro imprime uma linha por atribuição, a opção <code>-q</code> (ou <code>--quiet</code>) do <code>parser_exe</code> desliga o rastro: só aparecem o <code>Programa retornou: N</code>, os erros e os avisos. A mudança fica toda no avaliador (<code>definir_rastro_execucao</code> em <code>src/ast.c</code>) e no <code>main</code>, sem alterar tokens, gramática ou nós da AST (PR #88).</p>
+<hr />
+<h2 id="problemas-encontrados-e-solucoes">Problemas encontrados e soluções<a class="headerlink" href="#problemas-encontrados-e-solucoes" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Problema</th>
+<th>Quando</th>
+<th>Solução adotada</th>
+<th>Referência</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A primeira reorganização das pastas foi revertida e o <code>parser.y</code> deixou de ser rastreado pelo git</td>
+<td>26/08 a 13/09</td>
+<td>Estrutura refeita com <code>src/</code> e <code>docs/</code> e o <code>parser.y</code> adicionado de novo</td>
+<td>PRs #1, #2 e #23</td>
+</tr>
+<tr>
+<td>O guia de expressões regulares entrou desatualizado em relação ao <code>lexer.l</code></td>
+<td>22/09 a 23/09</td>
+<td>O PR foi revertido e refeito com as regras atuais do lexer</td>
+<td>PRs #28, #30 e #31</td>
+</tr>
+<tr>
+<td>Pastas <code>.vscode/</code> e arquivos gerados pelo Flex e pelo Bison eram versionados; o <code>.gitignore</code> chegou a ter marcadores de conflito</td>
+<td>17/08 a 06/11</td>
+<td>Marcadores removidos, arquivos gerados movidos para <code>build/</code> e ignorados, binário de teste retirado do versionamento</td>
+<td>PR #51</td>
+</tr>
+<tr>
+<td>Na P1 o lexer usava um <code>enum</code> próprio de tokens e não conversava com o parser</td>
+<td>28/09 a 31/10</td>
+<td>Os tokens passaram a vir do Bison (<code>parser.tab.h</code>) e lexer e parser compartilham o <code>%union</code></td>
+<td>PR #48</td>
+</tr>
+<tr>
+<td>A tabela de símbolos com arrays paralelos fazia busca linear</td>
+<td>27/10 a 29/10</td>
+<td>Migração para tabela hash (djb2) com encadeamento</td>
+<td>PR #52</td>
+</tr>
+<tr>
+<td>AST, tabela e avaliador prontos, mas o parser não construía a AST: nenhum programa executava</td>
+<td>P2 (09/11)</td>
+<td>Prioridade da sprint 14: ações semânticas no <code>parser.y</code> que criam os nós e chamam <code>eval_ast</code></td>
+<td>PRs #57 e #58</td>
+</tr>
+<tr>
+<td><em>Else</em> pendente gerava conflito <em>shift/reduce</em> na gramática</td>
+<td>Sprint 14</td>
+<td><code>%precedence SEM_ELSE</code> e <code>%prec SEM_ELSE</code> na regra do <code>if</code> sem <code>else</code></td>
+<td>PR #57</td>
+</tr>
+<tr>
+<td><code>main</code> e <code>develop</code> divergiram: o parser ligado à AST entrou só na <code>main</code> e a redução de escopo só na <code>develop</code></td>
+<td>20/11 a 24/11</td>
+<td>Integração da <code>develop</code> na <code>main</code> com os conflitos de documentação resolvidos à mão, e depois sincronização da <code>develop</code></td>
+<td>PRs #60 e #61</td>
+</tr>
+<tr>
+<td>Erros semânticos só apareciam durante a execução, depois de saída parcial</td>
+<td>Até 24/11</td>
+<td>Módulo de análise semântica antes do avaliador, que reporta todos os erros com a linha</td>
+<td>Issue #62</td>
+</tr>
+<tr>
+<td>Variáveis de bloco "vazavam": <code>int a = 1; { int a = 2; }</code> deixava <code>a</code> valendo 2, e variáveis de bloco continuavam existindo depois dele</td>
+<td>Até 26/11</td>
+<td>Escopos aninhados na tabela de símbolos</td>
+<td>Issue #63, PR #81</td>
+</tr>
+<tr>
+<td><code>&amp;&amp;</code> e <code>||</code> avaliavam os dois lados: <code>a &amp;&amp; (1 / a)</code> com <code>a == 0</code> abortava com divisão por zero</td>
+<td>Até 26/11</td>
+<td>Curto-circuito no avaliador; o resultado é sempre 0 ou 1</td>
+<td>Issue #64, PR #81</td>
+</tr>
+<tr>
+<td>Comentário <code>/*</code> sem fechamento: o lexer mostrava o erro, mas o programa executava e saía com código 0</td>
+<td>Até 26/11</td>
+<td>Contador de erros léxicos consultado pelo <code>main</code> depois do <code>yyparse()</code>; o programa não executa e sai com código 1</td>
+<td>Issue #67, PR #81</td>
+</tr>
+<tr>
+<td>O <code>make test</code> da análise semântica e o da issue #68 conflitaram no <code>Makefile</code>; <code>echo "\n"</code> imprimia o <code>\n</code> literal</td>
+<td>26/11</td>
+<td>Merge manual que manteve a estrutura da #68, incluiu <code>tests/semantica/</code> e trocou <code>echo</code> por <code>printf</code></td>
+<td>PRs #79 e #81</td>
+</tr>
+<tr>
+<td><code>case -1:</code> e <code>+x</code> davam erro sintático porque <code>rotulo</code> só aceitava literais sem sinal e não havia regra para <code>+</code> unário</td>
+<td>Até 27/11</td>
+<td>Inclusão de <code>O_MINUS L_INT</code> e <code>O_PLUS L_INT</code> na regra <code>rotulo</code> e adição da regra <code>O_PLUS expressao %prec UMINUS</code> no <code>parser.y</code>, com novos testes em <code>tests/programas/case_negativo.c</code></td>
+<td>Issue #76, PR #82</td>
+</tr>
+<tr>
+<td>O <code>make test</code> reprovava o que estava certo e aprovava o que estava errado: programas rejeitados de propósito no grupo dos que devem passar, <code>.esperado</code> executados como código, <code>return N</code> tratado como falha e um <code>#</code> dentro da receita que comentava o resto do comando</td>
+<td>26/11</td>
+<td>Separação dos arquivos com erro intencional para <code>tests/erros/</code>, comparação de <code>stdout/stderr</code> com <code>.esperado</code> nos programas válidos (ignorando o código de saída do <code>return</code> do programa) e atualização do guia em <code>docs/como_executar.md</code></td>
+<td>PR #79</td>
+</tr>
+<tr>
+<td>O <code>+</code> unário passava no parser mas falhava na execução (<code>Operador unário desconhecido '+'</code>), e o teste não acusava porque não tinha <code>.esperado</code></td>
+<td>27/11</td>
+<td><code>+</code> tratado no avaliador e <code>.esperado</code> criado para o teste</td>
+<td>PR #82</td>
+</tr>
+<tr>
+<td>Nos testes do scanner, as mensagens de erro (<code>stderr</code>) saíam antes dos tokens (<code>stdout</code>) quando os dois iam juntos para um pipe</td>
+<td>27/11</td>
+<td><code>setvbuf</code> linha a linha no <code>main</code> do lexer isolado; os <code>.esperado</code> seguem a ordem do programa de entrada</td>
+<td>PR #83</td>
+</tr>
+<tr>
+<td>Programas com erro sintático vazavam memória (de 58 a 398 bytes, segundo o LeakSanitizer): o Bison descartava sem liberar os nós da AST e os nomes de <code>IDENT</code> da pilha, e os comandos já ligados à raiz nunca eram liberados</td>
+<td>Até 27/11</td>
+<td><code>%destructor</code> para <code>&lt;node&gt;</code> e <code>&lt;sval&gt;</code> no <code>parser.y</code>, <code>free_ast(raiz)</code> quando <code>yyparse()</code> falha e o alvo <code>make test_vazamento</code> com AddressSanitizer</td>
+<td>Issue #75, PR #86</td>
+</tr>
+<tr>
+<td>No Windows, com <code>core.autocrlf=true</code>, o git gravava os <code>.esperado</code> em CRLF e 39 testes falhavam mesmo com a saída certa</td>
+<td>27/11</td>
+<td><code>diff -u --strip-trailing-cr</code> nas comparações e <code>.gitattributes</code> com <code>* text=auto eol=lf</code></td>
+<td>PR #86</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="o-que-ficou-de-fora">O que ficou de fora<a class="headerlink" href="#o-que-ficou-de-fora" title="Permanent link">&para;</a></h2>
+<p>Melhorias opcionais registradas como issues e não implementadas na entrega:</p>
+<ul>
+<li>mensagens de erro sintático mais claras e recuperação após o primeiro erro (#72);</li>
+<li>tipos próprios para <code>long</code> e <code>double</code> (#73);</li>
+<li>otimização por <em>constant folding</em> (#74);</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Voltar para o topo
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Rodapé" >
+        
+          
+          <a href="../trabalho_compiladores/" class="md-footer__link md-footer__link--prev" aria-label="Anterior: Trabalho de Compiladores">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Anterior
+              </span>
+              <div class="md-ellipsis">
+                Trabalho de Compiladores
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../contributing/" class="md-footer__link md-footer__link--next" aria-label="Próximo: Guia de Contribuição">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Próximo
+              </span>
+              <div class="md-ellipsis">
+                Guia de Contribuição
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.path", "navigation.footer", "navigation.tracking", "navigation.top", "toc.follow", "search.suggest", "search.highlight", "content.code.copy"], "search": "../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copiado para \u00e1rea de transfer\u00eancia", "clipboard.copy": "Copiar para \u00e1rea de transfer\u00eancia", "search.result.more.one": "mais 1 nesta p\u00e1gina", "search.result.more.other": "# mais nesta p\u00e1gina", "search.result.none": "Nenhum documento encontrado", "search.result.one": "1 documento encontrado", "search.result.other": "# documentos encontrados", "search.result.placeholder": "Digite para iniciar a busca", "search.result.term.missing": "Ausente", "select.version": "Selecione a vers\u00e3o"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.a5f9d56c.min.js"></script>
+      
+    
+  </body>
+</html>
