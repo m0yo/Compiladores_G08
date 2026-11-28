@@ -202,6 +202,8 @@ extern resultado valor_retorno; //valor do ultimo return executado
 /*
  Avaliador: percorre a AST e executa o programa
 */
+/* Habilita ou desabilita o rastro de execução do avaliador. */
+void definir_rastro_execucao(int habilitado);
 resultado eval_ast(ASTNode *node);
 
 //Liberação de memória: percorre a árvore recursivamente

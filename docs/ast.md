@@ -113,7 +113,7 @@ O avaliador imprime no `stdout` um resumo do que executa. Não existe ainda um c
 | Atribuição | `int x = 11` (tipo, nome e valor) |
 | Expressão como comando | `Resultado da expressão: 20` |
 
-Cada atribuição executada imprime uma linha, inclusive a cada iteração de um laço. Valores `char` imprimíveis saem entre aspas simples (`'A'`); os demais saem como número.
+Cada atribuição executada imprime uma linha, inclusive a cada iteração de um laço. Com `-q` (ou `--quiet`), o `main` chama `definir_rastro_execucao(0)` e essas linhas não são impressas; o resultado do `return`, os erros e os avisos continuam aparecendo (veja [Como executar](como_executar.md#rodar-o-interpretador)). Valores `char` imprimíveis saem entre aspas simples (`'A'`); os demais saem como número.
 
 ### Erros
 

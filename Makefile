@@ -91,6 +91,8 @@ test: $(EXEC) $(TEST_AST)
 		fi; \
 	done; \
 	exit $$falhas
+	@printf "\n=== Rodando testes do modo silencioso ===\n"
+	@sh tests/quiet/test_quiet.sh ./$(EXEC)
 
 clean:
 	rm -rf $(EXEC) $(LEXER_EXEC) $(BUILD_DIR)

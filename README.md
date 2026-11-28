@@ -18,8 +18,8 @@ Este projeto é um **interpretador para a linguagem C, implementado na própria 
 - ✅ **Tabela de símbolos** — `src/tabela_simbolos.c` e `.h`: tabela hash com os tipos `int`, `float` e `char`, escopos aninhados (bloco, `for` e `switch`)
 - ✅ **Avaliador (`eval_ast`)** — executa todos os comandos acima, chamado pelo `main` do parser; `&&` e `||` têm curto-circuito, `%` exige operandos inteiros e `long`/`double` são tratados como `int`/`float`
 - ✅ **Análise semântica** — `src/semantica.c` e `.h`: percorre a AST antes de executar e rejeita o programa com `Erro semântico na linha N: ...` (variável não declarada ou redeclarada, `break`/`continue` fora de laço, `case`/`default` repetido, `%` com `float`); conversão de `float`, variável sem valor e divisão por zero literal geram só um aviso (veja `docs/semantica.md`)
-- ✅ Testes automatizados com `make test`, cobrindo cada fase: unitários da AST, scanner (`tests/lexer/`), programas de ponta a ponta (`tests/programas/`), análise semântica (`tests/semantica/`) e programas que devem ser rejeitados (`tests/erros/`)
-- ⬜ Saída de dados na linguagem (`printf`) e `int main() { ... }`
+- ✅ Testes automatizados com `make test`, cobrindo cada fase: unitários da AST, scanner (`tests/lexer/`), programas de ponta a ponta (`tests/programas/`), análise semântica (`tests/semantica/`), programas que devem ser rejeitados (`tests/erros/`) e modo silencioso (`tests/quiet/`)
+- ✅ **Saída de dados** — rastro de execução como saída padrão e modo silencioso (`-q` ou `--quiet`), preservando o valor do `return`, os erros e os avisos
 - ⬜ Verificação de tipos mais completa (hoje só há o aviso de conversão `float` → `int`/`char` e o erro de `%` com `float`)
 - ⬜ Tipos próprios para `long`/`double`
 - ⬜ Arrays e ponteiros (funções, strings e structs estão fora do escopo; veja `tests/erros/`)
@@ -70,7 +70,8 @@ O lexer e o parser compartilham os mesmos tokens e tipos de valor semântico (`y
 │   ├── lexer/               # casos do scanner (válidos e inválidos) + .esperado
 │   ├── programas/           # programas .c + saída .esperado (parser e execução)
 │   ├── semantica/           # programas com erros e avisos semânticos + .esperado
-│   └── erros/               # programas que devem ser rejeitados (+ .esperado opcional)
+│   ├── erros/               # programas que devem ser rejeitados (+ .esperado opcional)
+│   └── quiet/               # testes do modo silencioso (-q e --quiet)
 ├── Makefile                 # compila lexer + parser (arquivos gerados ficam em build/) e roda os testes
 ├── mkdocs.yml               # configuração do site de documentação
 ├── LICENSE
@@ -89,11 +90,15 @@ make
 ./parser_exe tests/teste_parser.txt
 echo 'int x = 10; x = x * 2 + 1;' | ./parser_exe
 
+# executa em modo silencioso, sem imprimir o rastro intermediário
+./parser_exe -q tests/quiet/laco_longo.c
+./parser_exe --quiet < tests/quiet/laco_longo.c
+
 # compila só o lexer, imprimindo os tokens reconhecidos
 make lexer_exe
 ./lexer_exe < tests/teste_lexer.txt
 
-# todos os testes: unitários da AST, scanner, programas e programas rejeitados
+# todos os testes: AST, scanner, programas, erros e modo silencioso
 make test
 
 # só os testes do scanner
@@ -119,12 +124,18 @@ O `make test` imprime `[OK ]` para cada teste e termina com código de saída di
 
 ### Saída e código de saída
 
-A linguagem não tem `printf`. O que o programa mostra é o rastro do avaliador (`Declarado: x : int = 10`, `int x = 21`, `Resultado da expressão: ...`). `return expr;` encerra o programa e vira o código de saída do `parser_exe` (módulo 256, como em qualquer programa C); o valor completo aparece em `Programa retornou: N`. Erros léxicos, sintáticos e semânticos terminam com código `1` e **nada é executado**; avisos (`Aviso semântico na linha N: ...`) não impedem a execução. Por isso, para saber se houve erro, olhe a mensagem e não só o código de saída: `return 1;` também sai com `1`.
+A linguagem não tem `printf`. Por padrão, o interpretador mostra o rastro do avaliador (`Declarado: x : int = 10`, `int x = 21`, `Resultado da expressão: ...`).
+
+As opções `-q` e `--quiet` permitem executar programas em modo silencioso, suprimindo a impressão de declarações, atribuições e resultados intermediários de expressões. O valor do `return`, os erros e os avisos continuam sendo apresentados. A opção `-a` pode ser utilizada em conjunto com o modo silencioso para visualizar a AST.
+
+`return expr;` encerra o programa e define o código de saída do `parser_exe` (módulo 256 no Linux). O valor inteiro completo aparece em `Programa retornou: N`, inclusive no modo silencioso.
+
+Erros léxicos, sintáticos e semânticos terminam com código `1` e **nada é executado**. Erros de execução também terminam com código `1`, enquanto avisos (`Aviso semântico na linha N: ...`) não impedem a execução. Por isso, para saber se houve erro, olhe a mensagem e não só o código de saída: `return 1;` também sai com `1`.
 
 ## Limitações conhecidas
 
 - **Fora do escopo, por decisão do grupo:** strings, funções e structs são rejeitados com erro (testados em `tests/erros/`). Também não há arrays nem ponteiros.
-- **Sem `printf`:** a saída é o rastro do avaliador (veja acima).
+- **Sem `printf`:** a saída padrão é o rastro do avaliador, que pode ser suprimido com `-q` ou `--quiet`. Não há comando de impressão na linguagem interpretada.
 - **Tipos:** só `int`, `float` e `char`. `long` e `double` são tratados como `int` e `float`, e o estouro de `int` é silencioso.
 - **Operadores:** não há `++`, `+=` e afins.
 - **Erros sintáticos:** o parser para no primeiro erro e informa só a linha (`syntax error`).
@@ -157,7 +168,7 @@ Isso sobe um servidor local (geralmente em `http://127.0.0.1:8000`) com o site d
 - [x] `case` com constante negativa (`case -1:`) e `+` unário
 - [x] Testes automatizados cobrindo cada etapa do pipeline (scanner, parser, semântica e execução)
 - [ ] Verificação de tipos mais completa
-- [ ] Decidir a saída de dados da linguagem (`printf` ou comando de impressão)
+- [x] Definir a saída de dados do interpretador (rastro de execução e modo silencioso com `-q` e `--quiet`)
 - [ ] Suporte a arrays e ponteiros (funções, strings e structs estão fora do escopo)
 
 ## Como contribuir
